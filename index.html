@@ -204,7 +204,11 @@ var DUP = 'Este comprobante ya fue usado en otro pago. Sube el comprobante corre
 var CFG = window.NATILLERA_CONFIG || {};
 var PROD = !!(CFG.url && CFG.anonKey);
 var sb = null;
-if (PROD && window.supabase) sb = window.supabase.createClient(CFG.url, CFG.anonKey);
+// Limpia la URL: deja solo https://xxxx.supabase.co (sin "/" final, sin /rest/v1 ni espacios)
+var CLEAN_URL = CFG.url || '';
+try{ CLEAN_URL = new URL(String(CFG.url).trim()).origin; }catch(e){ CLEAN_URL = String(CFG.url||'').trim().replace(/\/+$/,''); }
+var CLEAN_KEY = String(CFG.anonKey||'').trim();
+if (PROD && window.supabase) sb = window.supabase.createClient(CLEAN_URL, CLEAN_KEY);
 
 var S = {fund:null, members:[], contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]};
 var ME = null;
@@ -989,6 +993,7 @@ function loginError(e){
   if(/not confirmed|email_not_confirmed/i.test(m+code)) return 'Tu correo aún no está confirmado. En Supabase, Authentication > Users, abre tu usuario y confirma el correo (o créalo de nuevo marcando Auto Confirm User).';
   if(/invalid login credentials|invalid_credentials/i.test(m+code)) return 'Correo o contraseña incorrectos. Si estás seguro de que son los correctos, revisa en Supabase (Authentication > Users) que el usuario exista y esté confirmado.';
   if(/api key|apikey|invalid jwt|No API key/i.test(m)) return 'La clave de config.js no es válida. Cópiala de nuevo desde Supabase (Project Settings > API Keys), completa y sin espacios.';
+  if(/invalid path specified/i.test(m)) return 'La URL de config.js está mal escrita. Debe ser solo https://TU-PROYECTO.supabase.co, sin "/" al final y sin nada después.';
   if(/failed to fetch|networkerror|load failed|fetch/i.test(m)) return 'No se pudo conectar con Supabase. Revisa la URL de config.js (debe empezar con https:// y terminar en .supabase.co) y tu internet.';
   if(/rate limit|too many/i.test(m)) return 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
   return 'No se pudo ingresar: '+m+(st?' (código '+st+')':'');
