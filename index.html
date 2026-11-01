@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0d6a55">
-<title>Fondo Milagro Digital</title>
+<title>Natillera Digital</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -134,7 +134,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
@@ -157,7 +157,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 
 <div class="wrap" id="loginBox" hidden>
   <div class="card" style="max-width:420px;margin:48px auto">
-    <header><h2>Ingresar a la Fondo Milagro</h2></header>
+    <header><h2>Ingresar a la natillera</h2></header>
     <form data-form="login" style="display:grid;gap:12px">
       <label class="sm muted">Correo<input type="email" id="lg-email" autocomplete="username"></label>
       <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
@@ -170,7 +170,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <div class="wrap" id="msgBox" hidden><div class="card" style="max-width:520px;margin:48px auto"><h2>Atención</h2><p id="msgText"></p></div></div>
 
 <div class="wrap" id="appBox"><main id="view" tabindex="-1"></main></div>
-<footer class="foot">Fondo Milagro Digital · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
+<footer class="foot">Natillera Digital · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
 <div id="modal" hidden></div>
 <div id="toast" hidden role="status"></div>
 
@@ -203,7 +203,7 @@ var DUP = 'Este comprobante ya fue usado en otro pago. Sube el comprobante corre
 /* =====================================================================
    CONFIGURACIÓN: modo demo (sin claves) o modo real (con Supabase)
    ===================================================================== */
-var CFG = window.Fondo Milagro_CONFIG || {};
+var CFG = window.NATILLERA_CONFIG || {};
 var PROD = !!(CFG.url && CFG.anonKey);
 var sb = null;
 // Limpia la URL: deja solo https://xxxx.supabase.co (sin "/" final, sin /rest/v1 ni espacios)
@@ -313,7 +313,7 @@ async function prepareEvidence(file){
 /* =====================================================================
    CAPA DE DATOS · MODO DEMO (todo en el navegador)
    ===================================================================== */
-var KEY='Fondo Milagro_v2_demo';
+var KEY='natillera_v2_demo';
 function saveDemo(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 function loadDemo(){ try{ var r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
 
@@ -339,7 +339,7 @@ function receipt(label){
 function seedDemo(){
   var now=new Date(), start=iso(new Date(now.getFullYear(), now.getMonth()-2, 1));
   S={
-    fund:{id:'f1', name:'Fondo Milagro Amigos 14', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
+    fund:{id:'f1', name:'Natillera Amigos 14', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
           maxLoanAmount:1350000, maxActiveLoans:1, lateFee:5000, graceDays:3, reservePct:0.10, interestMode:'tiempo', closed:false, closedAt:null},
     members:[
       {id:'m1',profileId:'m1',name:'Laura Gómez',email:'laura@ejemplo.co',phone:'3001110001',role:'admin',modality:'mensual',active:true},
@@ -695,7 +695,7 @@ function viewAportes(){
     var act='', open=(c.status==='pendiente'||c.status==='rechazado');
     if(open && !S.fund.closed && (admin||c.memberId===u.id)) act+='<button class="btn sm" type="button" data-act="upload-contrib" data-id="'+c.id+'">Subir comprobante</button>';
     if(admin && c.status==='revision') act+='<button class="btn sm" type="button" data-act="approve-contrib" data-id="'+c.id+'">Aprobar</button><button class="btn sm danger" type="button" data-act="reject-contrib" data-id="'+c.id+'">Rechazar</button>';
-    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la Fondo Milagro ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Puedes subir tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
+    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la natillera ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Puedes subir tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
     var fee=open?feeNow(c):(c.fee||0);
     h+='<tr><td>'+fdate(c.due)+'</td>'+(staff?'<td>'+esc(mname(c.memberId))+'</td>':'')+'<td>'+c.n+' de '+counts[c.memberId]+'</td><td class="r num">'+fmt(c.amount)+'</td><td class="r num">'+(fee?(open?'<span class="muted">'+fmt(fee)+' si pagas hoy</span>':fmt(fee)):'—')+'</td><td>'+cPill(c)+(c.status==='rechazado'&&c.adminNote?'<div class="muted sm">'+esc(c.adminNote)+'</div>':'')+'</td><td>'+(c.evidence?evButton('c',c.id):'<span class="muted">—</span>')+'</td><td class="no-print"><div class="actions">'+act+'</div></td></tr>';
   });
@@ -820,7 +820,7 @@ function viewNoFund(){
   if(!isAdmin()) return '<div class="card empty">El administrador aún no ha creado el fondo. Vuelve a intentarlo más tarde.</div>';
   var d=iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   return '<div class="card"><header><h2>Crear el fondo</h2></header><form data-form="create-fund" style="display:grid;gap:12px;max-width:520px">'+
-    '<label class="sm muted">Nombre<input type="text" id="n-name" value="Fondo Milagro Amigos"></label>'+
+    '<label class="sm muted">Nombre<input type="text" id="n-name" value="Natillera Amigos"></label>'+
     '<label class="sm muted">Fecha de inicio<input type="date" id="n-start" value="'+d+'"></label>'+
     '<label class="sm muted">Duración (meses)<input type="number" id="n-months" value="14"></label>'+
     '<label class="sm muted">Aporte mensual (COP)<input type="number" id="n-mon" value="100000"></label>'+
@@ -835,7 +835,7 @@ function viewNoFund(){
 function render(){
   if(!ME){ return; }
   var staff=isStaff(), admin=isAdmin();
-  $('#fundName').textContent=S.fund?S.fund.name:'Fondo Milagro Digital';
+  $('#fundName').textContent=S.fund?S.fund.name:'Natillera Digital';
   $('#fundSub').textContent=S.fund?('Fondo de '+S.fund.months+' meses · '+ROLE_TXT[ME.role]+(S.fund.closed?' · cerrado':'')):ROLE_TXT[ME.role];
   $('#demoWho').hidden=PROD; $('#prodWho').hidden=!PROD; $('#meName').textContent=ME.name+' · '+ROLE_TXT[ME.role];
   if(!PROD) $('#userSel').innerHTML=S.members.map(function(m){ return '<option value="'+m.id+'"'+(m.id===ui.userId?' selected':'')+'>'+esc(m.name)+' ('+ROLE_TXT[m.role].toLowerCase()+')</option>'; }).join('');
