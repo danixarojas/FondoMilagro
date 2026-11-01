@@ -134,13 +134,15 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
+        <button class="btn sm ghost" type="button" data-act="edit-name">Mi nombre</button>
       </div>
       <div class="who" id="prodWho" hidden>
         <span id="meName"></span>
+        <button class="btn sm ghost" type="button" data-act="edit-name">Mi nombre</button>
         <button class="btn sm ghost" type="button" data-act="change-pass">Cambiar contraseña</button>
         <button class="btn sm ghost" type="button" data-act="logout">Salir</button>
       </div>
@@ -161,7 +163,11 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
       <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
       <p class="err" id="ferr" role="alert"></p>
       <button class="btn" type="submit">Entrar</button>
-      <p class="muted sm" style="margin:0">¿No tienes acceso? Pídele al administrador que te registre.</p>
+      <div id="googleBox" style="display:grid;gap:8px">
+        <p class="muted sm" style="text-align:center;margin:0">o</p>
+        <button class="btn ghost" type="button" data-act="google">Continuar con Google</button>
+      </div>
+      <p class="muted sm" style="margin:0">¿Primera vez? Entra con Google y avisa al administrador para que te inscriba en el fondo.</p>
     </form>
   </div>
 </div>
@@ -338,7 +344,7 @@ function seedDemo(){
   var now=new Date(), start=iso(new Date(now.getFullYear(), now.getMonth()-2, 1));
   S={
     fund:{id:'f1', name:'Natillera Amigos 14', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
-          maxLoanMultiple:1, maxActiveLoans:1, lateFee:5000, graceDays:3, reservePct:0.10, interestMode:'tiempo', closed:false, closedAt:null},
+          maxLoanAmount:1350000, maxActiveLoans:1, lateFee:5000, graceDays:3, reservePct:0.10, interestMode:'tiempo', closed:false, closedAt:null},
     members:[
       {id:'m1',profileId:'m1',name:'Laura Gómez',email:'laura@ejemplo.co',phone:'3001110001',role:'admin',modality:'mensual',active:true},
       {id:'m2',profileId:'m2',name:'Carlos Rojas',email:'carlos@ejemplo.co',phone:'3001110002',role:'socio',modality:'mensual',active:true},
@@ -401,11 +407,10 @@ var demoApi={
     var t=totals(), m=member(memberId), f=S.fund;
     if(!isAdmin() && memberId!==ME.id) throw new Error('Socio no válido.');
     if(f.closed) throw new Error('El fondo ya está cerrado.');
-    var saved=sum(S.contributions.filter(function(c){ return c.memberId===memberId&&c.status==='aprobado'; }), function(c){ return c.amount; });
-    if(amount>saved*f.maxLoanMultiple) throw new Error('El préstamo no puede ser superior a '+(f.maxLoanMultiple===1?(isAdmin()?'el ahorro total aprobado del socio':'tu ahorro total aprobado'):f.maxLoanMultiple+' veces el ahorro aprobado')+' ('+fmt(saved*f.maxLoanMultiple)+').');
-    if(amount>t.lendable) throw new Error(isStaff()?'Supera lo disponible para prestar ('+fmt(t.lendable)+').':'En este momento el fondo no tiene disponibilidad para ese monto. Consulta con el administrador.');
+    if(amount>f.maxLoanAmount) throw new Error('El valor máximo de un préstamo es '+fmt(f.maxLoanAmount)+' por socio.');
     var busy=S.loans.filter(function(l){ return l.memberId===memberId&&(l.status==='solicitado'||l.status==='activo'); }).length;
-    if(busy>=f.maxActiveLoans) throw new Error(isAdmin()?'El socio ya tiene el máximo de préstamos vigentes.':'Ya tienes el máximo de préstamos vigentes o en solicitud.');
+    if(busy>=f.maxActiveLoans) throw new Error(isAdmin()?'El socio ya tiene un préstamo vigente o en solicitud. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo vigente o en solicitud. Podrás pedir otro cuando pagues el actual.');
+    if(amount>t.lendable) throw new Error(isStaff()?'Supera lo disponible para prestar ('+fmt(t.lendable)+').':'En este momento el fondo no tiene disponibilidad para ese monto. Consulta con el administrador.');
     S.loans.push({id:uid(),memberId:memberId,amount:amount,term:term,status:'solicitado',requestedAt:todayISO(),approvedAt:null,note:reason});
     logDemo((isAdmin()?'Registró':'Solicitó')+' un préstamo de '+fmt(amount)+' ('+m.name+')'); saveDemo();
   },
@@ -441,6 +446,7 @@ var demoApi={
   },
   saveSettings:async function(o){ Object.assign(S.fund,o); logDemo('Actualizó las reglas del fondo'); saveDemo(); },
   createFund:async function(){},
+  setMyName:async function(n){ ME.name=n; logDemo('Cambió su nombre a '+n); saveDemo(); },
   closeFund:async function(){
     S.snapshot=settlementLive().map(function(r){ return {fund_member_id:r.id, full_name:r.name, saved:r.c, share:r.share, profit_share:r.gain, loan_debt:r.debt, net:r.net}; });
     S.fund.closed=true; S.fund.closedAt=new Date().toISOString();
@@ -461,7 +467,7 @@ async function fetchAll(build){
   }
   return out;
 }
-var ACTION_TXT={subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
+var ACTION_TXT={cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
   registrar_prestamo:'Registró un préstamo',aprobar_prestamo:'Aprobó un préstamo',rechazar_prestamo:'Rechazó un préstamo',
   reportar_pago_prestamo:'Registró un pago de préstamo',aprobar_pago:'Aprobó un pago de préstamo',rechazar_pago:'Rechazó un pago de préstamo',cerrar_fondo:'Cerró el fondo'};
 
@@ -476,7 +482,7 @@ async function loadAll(){
   if(!funds.length) return;
   var f=funds[0];
   S.fund={id:f.id,name:f.name,startDate:f.start_date,months:f.months,rate:Number(f.loan_rate),monthlyAmt:f.monthly_amount,biweeklyAmt:f.biweekly_amount,
-    maxLoanMultiple:Number(f.max_loan_multiple),maxActiveLoans:f.max_active_loans,lateFee:f.late_fee,graceDays:f.grace_days,
+    maxLoanAmount:Number(f.max_loan_amount||1350000),maxActiveLoans:f.max_active_loans,lateFee:f.late_fee,graceDays:f.grace_days,
     reservePct:Number(f.reserve_pct),interestMode:f.interest_mode,closed:f.closed,closedAt:f.closed_at};
   var fm=must(await sb.from('fund_members').select('id,mode,active,profile_id,profiles(full_name,email,phone,role)').eq('fund_id',f.id));
   S.members=fm.map(function(r){ var p=r.profiles||{}; return {id:r.id,profileId:r.profile_id,name:p.full_name||'—',email:p.email||'',phone:p.phone||'',role:p.role||'socio',modality:r.mode,active:r.active}; });
@@ -535,7 +541,7 @@ var prodApi={
     await loadAll();
   },
   saveSettings:async function(o){
-    must(await sb.from('funds').update({name:o.name,loan_rate:o.rate,max_loan_multiple:o.maxLoanMultiple,max_active_loans:o.maxActiveLoans,
+    must(await sb.from('funds').update({name:o.name,loan_rate:o.rate,max_loan_amount:o.maxLoanAmount,max_active_loans:o.maxActiveLoans,
       late_fee:o.lateFee,grace_days:o.graceDays,reserve_pct:o.reservePct,interest_mode:o.interestMode}).eq('id',S.fund.id));
     await loadAll();
   },
@@ -543,6 +549,7 @@ var prodApi={
     must(await sb.from('funds').insert({name:o.name,start_date:o.startDate,months:o.months,monthly_amount:o.monthlyAmt,biweekly_amount:o.biweeklyAmt,loan_rate:o.rate}));
     await loadAll();
   },
+  setMyName:async function(n){ must(await sb.rpc('set_my_name',{p_name:n})); await loadAll(); },
   closeFund:async function(){ must(await sb.rpc('close_fund',{p_fund:S.fund.id})); await loadAll(); },
   evidenceUrl:async function(ev){
     var r=await sb.storage.from('evidencias').createSignedUrl(ev.path,120);
@@ -699,11 +706,10 @@ function viewAportes(){
   return h+'</tbody></table></div></div>';
 }
 
-function loanLimitNote(memberId){
-  var f=S.fund, saved=sum(S.contributions.filter(function(c){ return c.memberId===memberId&&c.status==='aprobado'; }), function(c){ return c.amount; });
-  return f.maxLoanMultiple===1
-    ? 'El valor del préstamo no puede ser superior a tu ahorro total aprobado ('+fmt(saved)+').'
-    : 'El valor del préstamo no puede superar '+f.maxLoanMultiple+' veces tu ahorro total aprobado ('+fmt(saved*f.maxLoanMultiple)+').';
+function loanLimitNote(){
+  var f=S.fund;
+  return 'Puedes solicitar hasta '+fmt(f.maxLoanAmount)+' por préstamo, aunque no tengas ahorrado ese valor.'+
+    (f.maxActiveLoans===1?' No podrás pedir otro préstamo hasta que pagues el actual por completo.':'');
 }
 function viewPrestamos(){
   var admin=isAdmin(), staff=isStaff(), t=staff?totals():null, closed=S.fund.closed;
@@ -712,9 +718,9 @@ function viewPrestamos(){
     (admin&&!closed?'<button class="btn" type="button" data-act="new-loan">Registrar préstamo</button>':'')+
     (!staff&&ME.id&&!closed?'<button class="btn" type="button" data-act="new-loan">Solicitar préstamo</button>':'')+'</header>';
   if(staff){
-    h+='<p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. Disponible para prestar: <b class="num">'+fmt(t.lendable)+'</b> (caja '+fmt(t.cash)+' menos reserva '+fmt(t.reserve)+'). Tope por socio: '+S.fund.maxLoanMultiple+' vez/veces lo ahorrado; máximo '+S.fund.maxActiveLoans+' préstamo(s) vigente(s).</p>';
+    h+='<p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. Disponible para prestar: <b class="num">'+fmt(t.lendable)+'</b> (caja '+fmt(t.cash)+' menos reserva '+fmt(t.reserve)+'). Valor máximo por préstamo: '+fmt(S.fund.maxLoanAmount)+'; máximo '+S.fund.maxActiveLoans+' préstamo(s) vigente(s) por socio.</p>';
   } else {
-    h+='<div class="lock" style="margin-bottom:8px">'+(ME.id?loanLimitNote(ME.id):'')+'</div><p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. El administrador debe aprobar tu solicitud. Para pagar o abonar, usa el botón <b>Registrar pago o abono</b> en tu préstamo y sube el comprobante.</p>';
+    h+='<div class="lock" style="margin-bottom:8px">'+(ME.id?loanLimitNote():'')+'</div><p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. El administrador debe aprobar tu solicitud. Para pagar o abonar, usa el botón <b>Registrar pago o abono</b> en tu préstamo y sube el comprobante.</p>';
   }
   h+='</div>';
   if(!loans.length) h+='<div class="card empty">'+(staff?'Aún no hay préstamos.':'Aún no tienes préstamos.')+'</div>';
@@ -774,9 +780,17 @@ function viewEstado(){
   return h+'</tbody></table></div></div>';
 }
 
+function pendingProfiles(){
+  return PROD ? S.profiles.filter(function(p){ return p.role==='socio' && !S.members.some(function(m){ return m.profileId===p.id; }); }) : [];
+}
 function viewSocios(){
-  var admin=isAdmin();
-  var h='<div class="card"><header><h2>Socios</h2>'+(admin?'<button class="btn" type="button" data-act="new-member">Agregar socio</button>':'')+'</header><div class="tablebox"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Modalidad</th><th class="r">Aporte</th><th class="r">Ahorrado</th></tr></thead><tbody>';
+  var admin=isAdmin(), pend=pendingProfiles(), h='';
+  if(pend.length){
+    h+='<div class="card"><header><h2>Pendientes de inscribir ('+pend.length+')</h2><span class="muted sm">Se registraron con su cuenta y ya tienen rol de socio</span></header><div class="tablebox"><table><tbody>'+
+      pend.map(function(p){ return '<tr><td>'+esc(p.full_name)+'</td><td class="muted">'+esc(p.email)+'</td><td class="r">'+(admin?'<button class="btn sm" type="button" data-act="new-member" data-profile="'+p.id+'">Inscribir en el fondo</button>':'')+'</td></tr>'; }).join('')+
+      '</tbody></table></div></div>';
+  }
+  h+='<div class="card"><header><h2>Socios</h2>'+(admin?'<button class="btn" type="button" data-act="new-member">Agregar socio</button>':'')+'</header><div class="tablebox"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Modalidad</th><th class="r">Aporte</th><th class="r">Ahorrado</th></tr></thead><tbody>';
   S.members.forEach(function(m){
     var c=sum(S.contributions.filter(function(x){ return x.memberId===m.id&&x.status==='aprobado'; }), function(x){ return x.amount; });
     h+='<tr><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(m.phone||'—')+'</td><td>'+(m.role==='socio'?'Socio':'<span class="pill good">'+ROLE_TXT[m.role]+'</span>')+'</td><td>'+(m.modality==='quincenal'?'Quincenal':'Mensual')+'</td><td class="r num">'+fmt(amountFor(m.modality))+'</td><td class="r num">'+fmt(c)+'</td></tr>';
@@ -789,7 +803,7 @@ function viewAjustes(){
   return '<div class="card"><header><h2>Reglas del fondo</h2></header><form id="settings" data-form="settings" style="display:grid;gap:12px;max-width:520px">'+
    '<label class="sm muted">Nombre del fondo<input type="text" id="s-name" value="'+esc(f.name)+'"'+d+'></label>'+
    '<label class="sm muted">Tasa de interés de préstamos, mensual (%)<input type="number" id="s-rate" step="0.1" min="0" value="'+(f.rate*100)+'"'+d+'></label>'+
-   '<label class="sm muted">Tope de préstamo (veces lo ahorrado; 1 = no puede superar su ahorro total)<input type="number" id="s-mult" step="0.5" min="0.5" value="'+f.maxLoanMultiple+'"'+d+'></label>'+
+   '<label class="sm muted">Valor máximo de un préstamo por socio (COP)<input type="number" id="s-maxamt" step="10000" min="10000" value="'+f.maxLoanAmount+'"'+d+'></label>'+
    '<label class="sm muted">Préstamos vigentes por socio (máximo)<input type="number" id="s-maxl" step="1" min="1" value="'+f.maxActiveLoans+'"'+d+'></label>'+
    '<label class="sm muted">Multa por cuota atrasada (COP, 0 = sin multa)<input type="number" id="s-fee" step="500" min="0" value="'+f.lateFee+'"'+d+'></label>'+
    '<label class="sm muted">Días de gracia antes de cobrar multa<input type="number" id="s-grace" step="1" min="0" value="'+f.graceDays+'"'+d+'></label>'+
@@ -806,6 +820,7 @@ function viewActividad(){
 }
 
 function viewNoFund(){
+  if(ME.role==='socio') return '<div class="card"><header><h2>¡Tu cuenta está creada!</h2></header><p style="margin:0 0 8px">Ya puedes ingresar con tu cuenta (<b>'+esc(ME.name)+'</b>; si quieres otro nombre, pulsa <b>Mi nombre</b> arriba). Para empezar a ahorrar, el administrador debe inscribirte en el fondo y elegir tu modalidad (mensual o quincenal).</p><p class="muted sm" style="margin:0">Avísale y, cuando te inscriba, recarga esta página.</p></div>';
   if(!isAdmin()) return '<div class="card empty">El administrador aún no ha creado el fondo. Vuelve a intentarlo más tarde.</div>';
   var d=iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   return '<div class="card"><header><h2>Crear el fondo</h2></header><form data-form="create-fund" style="display:grid;gap:12px;max-width:520px">'+
@@ -839,7 +854,7 @@ function render(){
   var pc=S.contributions.filter(function(c){ return c.status==='revision'; }).length;
   var pl=S.payments.filter(function(p){ return p.status==='revision'; }).length+S.loans.filter(function(l){ return l.status==='solicitado'; }).length;
   $('#tabs').innerHTML=tabs.map(function(t){
-    var b=''; if(admin&&t[0]==='aportes'&&pc) b='<span class="badge">'+pc+'</span>'; if(admin&&t[0]==='prestamos'&&pl) b='<span class="badge">'+pl+'</span>';
+    var b=''; if(admin&&t[0]==='aportes'&&pc) b='<span class="badge">'+pc+'</span>'; if(admin&&t[0]==='prestamos'&&pl) b='<span class="badge">'+pl+'</span>'; if(admin&&t[0]==='socios'&&pendingProfiles().length) b='<span class="badge">'+pendingProfiles().length+'</span>';
     return '<button type="button" data-act="tab" data-tab="'+t[0]+'"'+(ui.tab===t[0]?' aria-current="page"':'')+'>'+t[1]+b+'</button>';
   }).join('');
   var v={resumen:viewResumen,aportes:viewAportes,prestamos:viewPrestamos,liquidacion:viewLiquidacion,estado:viewEstado,socios:viewSocios,ajustes:viewAjustes,actividad:viewActividad}[ui.tab];
@@ -857,6 +872,15 @@ H.tab=function(d){ ui.tab=d.tab; render(); };
 H.close=closeModal;
 H.reset=function(){ demoApi.reset().then(function(){ ui.tab='resumen'; render(); }); };
 H.print=function(){ try{ window.print(); }catch(e){ ferr('Tu navegador no permite imprimir desde aquí.'); } };
+H.google=function(){
+  var btn=document.querySelector('[data-act="google"]'); if(btn) btn.disabled=true;
+  sb.auth.signInWithOAuth({provider:'google', options:{redirectTo:location.origin+location.pathname}}).then(function(r){
+    if(r.error){ ferr(loginError(r.error)); if(btn) btn.disabled=false; }
+  }).catch(function(e){ ferr(loginError(e)); if(btn) btn.disabled=false; });
+};
+H['edit-name']=function(){
+  modal('Mi nombre','<form data-form="edit-name" style="display:grid;gap:12px"><label>Nombre que verán el administrador y el grupo<input type="text" id="nm" maxlength="60" value="'+esc(ME.name)+'" autocomplete="name"></label><p class="muted sm" style="margin:0">Usa tu nombre y apellido para que el administrador te reconozca. Entre 2 y 60 caracteres.</p><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar nombre</button></form>');
+};
 H.logout=function(){ sb.auth.signOut().then(function(){ ME=null; showOnly('login'); }); };
 H['change-pass']=function(){
   modal('Cambiar contraseña','<form data-form="change-pass" style="display:grid;gap:12px"><label>Nueva contraseña (mínimo 8 caracteres)<input type="password" id="np1" autocomplete="new-password"></label><label>Repítela<input type="password" id="np2" autocomplete="new-password"></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar</button></form>');
@@ -909,8 +933,8 @@ function loanPreview(){
 }
 H['new-loan']=function(){
   var admin=isAdmin(), t=admin?totals():null;
-  var sel=admin?'<label>Socio<select id="l-member">'+S.members.map(function(m){ return '<option value="'+m.id+'">'+esc(m.name)+'</option>'; }).join('')+'</select></label><p class="muted sm" style="margin:0">Disponible para prestar: '+fmt(t.lendable)+'. El tope depende del ahorro de cada socio ('+S.fund.maxLoanMultiple+' vez/veces).</p>'
-    :'<div class="lock">'+loanLimitNote(ME.id)+'</div>';
+  var sel=admin?'<label>Socio<select id="l-member">'+S.members.map(function(m){ return '<option value="'+m.id+'">'+esc(m.name)+'</option>'; }).join('')+'</select></label><p class="muted sm" style="margin:0">Disponible para prestar: '+fmt(t.lendable)+'. Valor máximo por préstamo: '+fmt(S.fund.maxLoanAmount)+' (no depende del ahorro). Un socio no puede recibir otro hasta pagar el vigente.</p>'
+    :'<div class="lock">'+loanLimitNote()+'</div>';
   modal(admin?'Registrar préstamo':'Solicitar préstamo','<form data-form="new-loan" style="display:grid;gap:12px">'+sel+
     '<label>Monto (COP)<input type="number" id="l-amount" value="100000"></label>'+
     '<label>Plazo (meses)<input type="number" id="l-term" min="1" max="12" value="2"></label>'+
@@ -954,12 +978,12 @@ H['approve-pay']=function(d){
 H['reject-pay']=function(d){
   modal('Rechazar pago','<form data-form="reject-pay" data-id="'+d.id+'" style="display:grid;gap:12px"><label>Motivo<textarea id="f-note"></textarea></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Rechazar</button></form>');
 };
-H['new-member']=function(){
+H['new-member']=function(d){
   var body;
   if(PROD){
     var free=S.profiles.filter(function(p){ return !S.members.some(function(m){ return m.profileId===p.id; }); });
-    if(!free.length){ modal('Agregar socio','<p style="margin:0">Primero crea el usuario en Supabase: <b>Authentication → Users → Add user</b>. Luego vuelve aquí y aparecerá en esta lista.</p>'); return; }
-    body='<label>Persona registrada<select id="m-profile">'+free.map(function(p){ return '<option value="'+p.id+'">'+esc(p.full_name)+' · '+esc(p.email)+'</option>'; }).join('')+'</select></label>';
+    if(!free.length){ modal('Agregar socio','<p style="margin:0">No hay personas registradas sin inscribir. Pídeles que entren a la página con Google (o crea su usuario en Supabase: <b>Authentication → Users → Add user</b>) y aparecerán aquí.</p>'); return; }
+    body='<label>Persona registrada<select id="m-profile">'+free.map(function(p){ return '<option value="'+p.id+'"'+(d&&d.profile===p.id?' selected':'')+'>'+esc(p.full_name)+' · '+esc(p.email)+'</option>'; }).join('')+'</select></label>';
   } else {
     body='<label>Nombre completo<input type="text" id="m-name"></label><label>Correo<input type="text" id="m-email" placeholder="socio@correo.com"></label>';
   }
@@ -993,6 +1017,10 @@ function loginError(e){
   if(/not confirmed|email_not_confirmed/i.test(m+code)) return 'Tu correo aún no está confirmado. En Supabase, Authentication > Users, abre tu usuario y confirma el correo (o créalo de nuevo marcando Auto Confirm User).';
   if(/invalid login credentials|invalid_credentials/i.test(m+code)) return 'Correo o contraseña incorrectos. Si estás seguro de que son los correctos, revisa en Supabase (Authentication > Users) que el usuario exista y esté confirmado.';
   if(/api key|apikey|invalid jwt|No API key/i.test(m)) return 'La clave de config.js no es válida. Cópiala de nuevo desde Supabase (Project Settings > API Keys), completa y sin espacios.';
+  if(/provider is not enabled|unsupported provider/i.test(m)) return 'El acceso con Google aún no está activado en Supabase. Sigue la guía de Google (GUIA_GOOGLE.md).';
+  if(/signups? not allowed|signup is disabled|signups are disabled/i.test(m)) return 'Los registros nuevos están desactivados en Supabase. Actívalos en Authentication > Sign In / Providers > Allow new users to sign up.';
+  if(/database error saving new user/i.test(m)) return 'No se pudo crear tu cuenta (error de base de datos). Avisa al administrador.';
+  if(/redirect_uri|redirect url|not allowed/i.test(m)) return 'La dirección de regreso no está permitida. En Supabase, Authentication > URL Configuration, agrega la dirección de esta página.';
   if(/invalid path specified/i.test(m)) return 'La URL de config.js está mal escrita. Debe ser solo https://TU-PROYECTO.supabase.co, sin "/" al final y sin nada después.';
   if(/failed to fetch|networkerror|load failed|fetch/i.test(m)) return 'No se pudo conectar con Supabase. Revisa la URL de config.js (debe empezar con https:// y terminar en .supabase.co) y tu internet.';
   if(/rate limit|too many/i.test(m)) return 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
@@ -1005,6 +1033,11 @@ F.login=function(){
     if(r.error) throw r.error;
     return loadAll();
   }).then(function(){ $('#lg-pass').value=''; render(); }).catch(function(e){ ferr(loginError(e)); });
+};
+F['edit-name']=function(){
+  var n=($('#nm').value||'').replace(/\s+/g,' ').trim();
+  if(n.length<2||n.length>60) return ferr('El nombre debe tener entre 2 y 60 caracteres.');
+  return api.setMyName(n).then(function(){ closeModal(); render(); }).catch(function(e){ ferr(e.message); });
 };
 F['change-pass']=function(){
   var a=$('#np1').value, b=$('#np2').value;
@@ -1027,8 +1060,8 @@ F['new-loan']=function(){
   if(!(a>=10000)) return ferr('Ingresa un monto de al menos $10.000.');
   if(!(n>=1)) return ferr('El plazo debe ser de al menos 1 mes.');
   var who=isAdmin()?$('#l-member').value:ME.id;
-  var saved=sum(S.contributions.filter(function(c){ return c.memberId===who&&c.status==='aprobado'; }), function(c){ return c.amount; });
-  if(a>saved*S.fund.maxLoanMultiple) return ferr(loanLimitNote(who).replace('El valor','El valor ')+' Ingresa un monto menor.');
+  if(a>S.fund.maxLoanAmount) return ferr('El valor máximo de un préstamo es '+fmt(S.fund.maxLoanAmount)+'. Ingresa un monto menor.');
+  if(S.loans.filter(function(l){ return l.memberId===who&&(l.status==='solicitado'||l.status==='activo'); }).length>=S.fund.maxActiveLoans) return ferr(isAdmin()?'El socio ya tiene un préstamo vigente o en solicitud. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo vigente o en solicitud. Podrás pedir otro cuando pagues el actual.');
   return done(api.requestLoan(who, a, n, ($('#l-note').value||'').trim()));
 };
 F['pay-loan']=function(f){
@@ -1053,11 +1086,11 @@ F['new-member']=function(){
   return done(api.addMember(o));
 };
 F.settings=function(){
-  var o={name:($('#s-name').value||'').trim(), rate:Number($('#s-rate').value)/100, maxLoanMultiple:Number($('#s-mult').value), maxActiveLoans:Number($('#s-maxl').value),
+  var o={name:($('#s-name').value||'').trim(), rate:Number($('#s-rate').value)/100, maxLoanAmount:Number($('#s-maxamt').value), maxActiveLoans:Number($('#s-maxl').value),
          lateFee:Number($('#s-fee').value), graceDays:Number($('#s-grace').value), reservePct:Number($('#s-res').value)/100, interestMode:$('#s-mode').value};
   if(!o.name) return ferr('El fondo necesita un nombre.');
   if(!(o.rate>=0&&o.rate<=0.2)) return ferr('La tasa debe estar entre 0% y 20%.');
-  if(!(o.maxLoanMultiple>0)||!(o.maxActiveLoans>=1)) return ferr('Revisa el tope y el máximo de préstamos.');
+  if(!(o.maxLoanAmount>=10000)||!(o.maxActiveLoans>=1)) return ferr('Revisa el valor máximo del préstamo (mínimo $10.000) y el máximo de préstamos vigentes.');
   if(!(o.lateFee>=0)||!(o.graceDays>=0)) return ferr('La multa y los días de gracia no pueden ser negativos.');
   if(!(o.reservePct>=0&&o.reservePct<=0.9)) return ferr('La reserva debe estar entre 0% y 90%.');
   return api.saveSettings(o).then(function(){ render(); var e=visFerr(); if(e){ e.style.color='var(--good)'; e.textContent='Cambios guardados.'; } }).catch(function(e){ ferr(e.message); });
@@ -1097,13 +1130,23 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModa
 /* =====================================================================
    INICIO
    ===================================================================== */
+function oauthErrorFromUrl(){
+  try{
+    var q=new URLSearchParams(location.search), h=new URLSearchParams(location.hash.replace(/^#/,''));
+    var d=q.get('error_description')||h.get('error_description');
+    if(d){ history.replaceState(null,'',location.pathname); return d; }
+  }catch(e){}
+  return null;
+}
 async function start(){
   try{ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
   if(PROD){
     if(!sb){ showMsg('No se pudo cargar la librería de Supabase. Revisa tu conexión a internet y recarga la página.'); return; }
     sb.auth.onAuthStateChange(function(ev){ if(ev==='SIGNED_OUT'){ ME=null; showOnly('login'); } });
+    if(CFG.googleLogin===false) $('#googleBox').hidden=true;
+    var oerr=oauthErrorFromUrl();
     var ses=(await sb.auth.getSession()).data.session;
-    if(!ses){ showOnly('login'); return; }
+    if(!ses){ showOnly('login'); if(oerr) ferr(loginError(new Error(oerr))); return; }
     try{ await loadAll(); render(); }catch(e){ showMsg('No se pudieron cargar los datos: '+e.message); }
     return;
   }
