@@ -10,6 +10,6 @@
 //  NUNCA pegues aquí la clave "service_role".
 // ============================================================
 window.NATILLERA_CONFIG = {
-  url: "https://fkowunwkbhsvyptbwqdm.supabase.co/rest/v1/",
+  url: "https://fkowunwkbhsvyptbwqdm.supabase.co/rest/v1",
   anonKey: "sb_publishable_X-SrHMKsHdaHm4dY_H06Vg_Y4zHVbvu"
 };
