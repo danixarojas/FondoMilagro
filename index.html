@@ -442,6 +442,16 @@ var demoApi={
   },
   saveSettings:async function(o){ Object.assign(S.fund,o); logDemo('Actualizó las reglas del fondo'); saveDemo(); },
   createFund:async function(){},
+  deleteLoan:async function(id){
+    var l=byId(S.loans,id);
+    if(!isAdmin()) throw new Error('Solo el administrador puede eliminar préstamos.');
+    if(!l) throw new Error('El préstamo no existe.');
+    if(S.fund.closed) throw new Error('El fondo ya está cerrado: no se pueden eliminar préstamos.');
+    if(paymentsOf(id).some(function(p){ return p.status==='aprobado'; })) throw new Error('Este préstamo ya tiene pagos aprobados y no se puede eliminar.');
+    S.payments=S.payments.filter(function(p){ return p.loanId!==id; });
+    S.loans=S.loans.filter(function(x){ return x.id!==id; });
+    logDemo('Eliminó el préstamo de '+fmt(l.amount)+' de '+mname(l.memberId)); saveDemo();
+  },
   setMyName:async function(n){ ME.name=n; logDemo('Cambió su nombre a '+n); saveDemo(); },
   closeFund:async function(){
     S.snapshot=settlementLive().map(function(r){ return {fund_member_id:r.id, full_name:r.name, saved:r.c, share:r.share, profit_share:r.gain, loan_debt:r.debt, net:r.net}; });
@@ -463,7 +473,7 @@ async function fetchAll(build){
   }
   return out;
 }
-var ACTION_TXT={cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
+var ACTION_TXT={eliminar_prestamo:'Eliminó un préstamo',cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
   registrar_prestamo:'Registró un préstamo',aprobar_prestamo:'Aprobó un préstamo',rechazar_prestamo:'Rechazó un préstamo',
   reportar_pago_prestamo:'Registró un pago de préstamo',aprobar_pago:'Aprobó un pago de préstamo',rechazar_pago:'Rechazó un pago de préstamo',cerrar_fondo:'Cerró el fondo'};
 
@@ -545,6 +555,7 @@ var prodApi={
     must(await sb.from('funds').insert({name:o.name,start_date:o.startDate,months:o.months,monthly_amount:o.monthlyAmt,biweekly_amount:o.biweeklyAmt,loan_rate:o.rate}));
     await loadAll();
   },
+  deleteLoan:async function(id){ must(await sb.rpc('delete_loan',{p_id:id})); await loadAll(); },
   setMyName:async function(n){ must(await sb.rpc('set_my_name',{p_name:n})); await loadAll(); },
   closeFund:async function(){ must(await sb.rpc('close_fund',{p_fund:S.fund.id})); await loadAll(); },
   evidenceUrl:async function(ev){
@@ -724,6 +735,7 @@ function viewPrestamos(){
     var bal=loanBalance(l), pays=paymentsOf(l.id).slice().sort(function(a,b){ return a.date<b.date?1:-1; }), act='';
     if(admin && l.status==='solicitado') act+='<button class="btn sm" type="button" data-act="approve-loan" data-id="'+l.id+'">Aprobar y desembolsar</button><button class="btn sm danger" type="button" data-act="reject-loan" data-id="'+l.id+'">Rechazar</button>';
     if(l.status==='activo' && (admin||l.memberId===ME.id)) act+='<button class="btn sm" type="button" data-act="pay-loan" data-id="'+l.id+'">'+(admin?'Registrar pago':'Registrar pago o abono')+'</button>';
+    if(admin && !closed && !pays.some(function(p){ return p.status==='aprobado'; })) act+='<button class="btn sm danger" type="button" data-act="delete-loan" data-id="'+l.id+'">Eliminar</button>';
     h+='<div class="card loan"><div class="loan-top"><div><h3>'+(staff?esc(mname(l.memberId))+' · ':'')+fmt(l.amount)+'</h3><span class="muted sm">'+(staff?'Registrado ':'Solicitado ')+fdate(l.requestedAt)+(l.approvedAt?' · desembolsado '+fdate(l.approvedAt):'')+' · plazo '+l.term+' mes(es)'+(l.note?' · '+esc(l.note):'')+'</span></div><div class="actions">'+pill(l.status)+(loanOverdue(l)?pill('vencido'):'')+'</div></div>';
     if(l.status==='activo'||l.status==='pagado') h+='<div class="stats"><div><small>Saldo de capital</small><b>'+fmt(bal)+'</b></div><div><small>Interés del próximo mes</small><b>'+fmt(bal*S.fund.rate)+'</b></div><div><small>Intereses pagados</small><b>'+fmt(sum(pays.filter(function(p){return p.status==='aprobado';}),function(p){return p.interest;}))+'</b></div></div>';
     if(pays.length){
@@ -929,6 +941,14 @@ H['new-loan']=function(){
     '<div class="preview" id="l-prev"></div><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">'+(admin?'Registrar solicitud':'Enviar solicitud')+'</button></form>');
   loanPreview();
 };
+H['delete-loan']=function(d){
+  var l=byId(S.loans,d.id); if(!l) return;
+  modal('Eliminar préstamo','<p style="margin:0">¿Eliminar el préstamo de <b>'+esc(mname(l.memberId))+'</b> por <b class="num">'+fmt(l.amount)+'</b> ('+(PILL[l.status]?PILL[l.status][0].toLowerCase():esc(l.status))+')?</p>'+
+    (l.status==='activo'?'<p class="lock" style="margin:0">Estaba activo: su valor vuelve a la caja y se eliminan sus pagos pendientes o rechazados.</p>':'')+
+    '<p class="muted sm" style="margin:0">No se puede deshacer. Queda registrado en Actividad. Un préstamo con pagos aprobados no se puede eliminar.</p><p class="err" id="ferr" role="alert"></p>'+
+    '<div class="actions"><button class="btn danger" type="button" data-act="delete-loan-do" data-id="'+l.id+'">Sí, eliminar</button><button class="btn ghost" type="button" data-act="close">Cancelar</button></div>');
+};
+H['delete-loan-do']=function(d){ done(api.deleteLoan(d.id)); };
 H['approve-loan']=function(d){ done(api.reviewLoan(d.id,true)); };
 H['reject-loan']=function(d){ done(api.reviewLoan(d.id,false)); };
 H['pay-loan']=function(d){
