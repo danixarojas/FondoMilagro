@@ -173,7 +173,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <div id="toast" hidden role="status"></div>
 
 <script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
 <script>
 (function(){
 'use strict';
@@ -984,13 +984,22 @@ H['close-fund-do']=function(){ done(api.closeFund()); };
 
 /* ---------- formularios ---------- */
 var F={};
+function loginError(e){
+  var m=String((e&&e.message)||e||''), code=(e&&e.code)||'', st=e&&e.status;
+  if(/not confirmed|email_not_confirmed/i.test(m+code)) return 'Tu correo aún no está confirmado. En Supabase, Authentication > Users, abre tu usuario y confirma el correo (o créalo de nuevo marcando Auto Confirm User).';
+  if(/invalid login credentials|invalid_credentials/i.test(m+code)) return 'Correo o contraseña incorrectos. Si estás seguro de que son los correctos, revisa en Supabase (Authentication > Users) que el usuario exista y esté confirmado.';
+  if(/api key|apikey|invalid jwt|No API key/i.test(m)) return 'La clave de config.js no es válida. Cópiala de nuevo desde Supabase (Project Settings > API Keys), completa y sin espacios.';
+  if(/failed to fetch|networkerror|load failed|fetch/i.test(m)) return 'No se pudo conectar con Supabase. Revisa la URL de config.js (debe empezar con https:// y terminar en .supabase.co) y tu internet.';
+  if(/rate limit|too many/i.test(m)) return 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
+  return 'No se pudo ingresar: '+m+(st?' (código '+st+')':'');
+}
 F.login=function(){
   var email=($('#lg-email').value||'').trim(), pass=$('#lg-pass').value;
   if(!email||!pass) return ferr('Escribe tu correo y tu contraseña.');
   return sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
-    if(r.error) throw new Error('Correo o contraseña incorrectos.');
+    if(r.error) throw r.error;
     return loadAll();
-  }).then(function(){ $('#lg-pass').value=''; render(); }).catch(function(e){ ferr(e.message); });
+  }).then(function(){ $('#lg-pass').value=''; render(); }).catch(function(e){ ferr(loginError(e)); });
 };
 F['change-pass']=function(){
   var a=$('#np1').value, b=$('#np2').value;
