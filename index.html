@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d6a55">
+<title>Natillera Digital</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Diseño: cabecera + pestañas arriba, contenido en tarjetas; verde profundo como acento, semáforo solo para estados. */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --ink:#15231d; --muted:#5b6b64; --line:#dde4de;
+  --accent:#0d6a55; --accent-soft:#dff1ea; --accent-ink:#ffffff;
+  --good:#1a7f4b; --good-bg:#dff3e7; --warn:#8a5a00; --warn-bg:#fdf0cf; --bad:#a82a2a; --bad-bg:#fbe3e1;
+  --shadow:0 1px 2px rgba(20,35,29,.06),0 4px 16px rgba(20,35,29,.05);
+  --display:'Bricolage Grotesque',system-ui,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1a16; --surface:#16251f; --ink:#e7f0eb; --muted:#9bb0a6; --line:#26382f;
+    --accent:#4cc9a3; --accent-soft:#16372d; --accent-ink:#06261c;
+    --good:#5fd394; --good-bg:#173a28; --warn:#f0c15a; --warn-bg:#3b2e0f; --bad:#ff8f87; --bad-bg:#43201e;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1a16; --surface:#16251f; --ink:#e7f0eb; --muted:#9bb0a6; --line:#26382f;
+  --accent:#4cc9a3; --accent-soft:#16372d; --accent-ink:#06261c;
+  --good:#5fd394; --good-bg:#173a28; --warn:#f0c15a; --warn-bg:#3b2e0f; --bad:#ff8f87; --bad-bg:#43201e;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:20px} h3{font-size:16px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top-row{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:14px 0}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--display);font-size:20px}
+.brand span{color:var(--muted);font-size:13px}
+.who{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);flex-wrap:wrap}
+select,input,textarea,button{font:inherit}
+select,input[type=text],input[type=number],input[type=date],input[type=email],input[type=password],textarea{
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.who select{width:auto}
+textarea{resize:vertical;min-height:64px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-current=page]{color:var(--accent);border-bottom-color:var(--accent)}
+.badge{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:99px;background:var(--warn-bg);color:var(--warn);font-size:12px;text-align:center}
+.notice{background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:13px}
+.notice .wrap{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:space-between;align-items:center;padding-top:8px;padding-bottom:8px}
+main{padding:20px 0 48px;display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.card header{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.kpi small{display:block;color:var(--muted);font-size:13px}
+.kpi strong{display:block;font-family:var(--display);font-size:26px;margin-top:2px}
+.kpi em{font-style:normal;color:var(--muted);font-size:12px}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.rowbar{display:grid;grid-template-columns:130px 1fr 100px;gap:10px;align-items:center;font-size:13px;margin:8px 0}
+.rowbar span:last-child{text-align:right}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--line);color:var(--muted);white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.actions{display:flex;flex-wrap:wrap;gap:6px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.filters label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted);min-width:160px}
+.muted{color:var(--muted)}
+.sm{font-size:13px}
+.loan{display:flex;flex-direction:column;gap:12px}
+.loan-top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+.stats{display:flex;flex-wrap:wrap;gap:6px 28px}
+.stats div small{display:block;color:var(--muted);font-size:12px}
+.stats div b{font-variant-numeric:tabular-nums}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+#modal{position:fixed;inset:0;background:rgba(10,20,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.mbox{background:var(--surface);color:var(--ink);border-radius:14px;max-width:520px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mhead{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.mbody{padding:16px;display:flex;flex-direction:column;gap:12px}
+.mbody label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.mbody label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:14px}
+.mbody label.chk input{width:auto}
+.icon{background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+.err{color:var(--bad);font-size:13px;margin:0}
+.preview{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:13px}
+.evimg{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+.lock{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 14px;font-size:14px}
+.printhead{display:none}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:20;max-width:90vw;font-size:14px}
+footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 32px}
+@media (prefers-reduced-motion:no-preference){.bar>i{transition:width .4s}}
+@media (max-width:520px){.rowbar{grid-template-columns:90px 1fr 84px}}
+@media print{
+  body{background:#fff;color:#000}
+  header.top,.notice,footer.foot,.no-print,#modal,#toast,.actions,.btn{display:none!important}
+  .printhead{display:block;margin-bottom:12px}
+  .card{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
+  .wrap{max-width:none;padding:0}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
+      <div class="who" id="demoWho">
+        <label for="userSel">Ver como</label>
+        <select id="userSel" data-bind="userId"></select>
+      </div>
+      <div class="who" id="prodWho" hidden>
+        <span id="meName"></span>
+        <button class="btn sm ghost" type="button" data-act="change-pass">Cambiar contraseña</button>
+        <button class="btn sm ghost" type="button" data-act="logout">Salir</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Secciones"></nav>
+  </div>
+</header>
+<div class="notice" id="demoNotice"><div class="wrap">
+  <span>Modo demostración: datos de ejemplo guardados solo en este navegador.</span>
+  <button class="btn sm ghost" data-act="reset" type="button">Restablecer demo</button>
+</div></div>
+
+<div class="wrap" id="loginBox" hidden>
+  <div class="card" style="max-width:420px;margin:48px auto">
+    <header><h2>Ingresar a la natillera</h2></header>
+    <form data-form="login" style="display:grid;gap:12px">
+      <label class="sm muted">Correo<input type="email" id="lg-email" autocomplete="username"></label>
+      <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
+      <p class="err" id="ferr" role="alert"></p>
+      <button class="btn" type="submit">Entrar</button>
+      <p class="muted sm" style="margin:0">¿No tienes acceso? Pídele al administrador que te registre.</p>
+    </form>
+  </div>
+</div>
+<div class="wrap" id="msgBox" hidden><div class="card" style="max-width:520px;margin:48px auto"><h2>Atención</h2><p id="msgText"></p></div></div>
+
+<div class="wrap" id="appBox"><main id="view" tabindex="-1"></main></div>
+<footer class="foot">Natillera Digital · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
+<div id="modal" hidden></div>
+<div id="toast" hidden role="status"></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+var $ = function(s, r){ return (r||document).querySelector(s); };
+var esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+var cop = new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0});
+var fmt = function(n){ return cop.format(Math.round(n||0)); };
+var uid = function(){ return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,6); };
+var pad = function(n){ return String(n).padStart(2,'0'); };
+var iso = function(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
+var parseISO = function(s){ var p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); };
+var todayISO = function(){ return iso(new Date()); };
+var addDays = function(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; };
+var daysBetween = function(a,b){ return Math.round((parseISO(b)-parseISO(a))/86400000); };
+function fdate(s){ if(!s) return '—'; return parseISO(String(s).slice(0,10)).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}); }
+var sum = function(arr, f){ return arr.reduce(function(a,x){ return a+f(x); },0); };
+var pctTxt = function(r){ return (r*100).toFixed(1).replace('.0','')+'%'; };
+var byId = function(arr,id){ return arr.filter(function(x){ return x.id===id; })[0]; };
+var DUP = 'Este comprobante ya fue usado en otro pago. Sube el comprobante correcto.';
+
+/* =====================================================================
+   CONFIGURACIÓN: modo demo (sin claves) o modo real (con Supabase)
+   ===================================================================== */
+var CFG = window.NATILLERA_CONFIG || {};
+var PROD = !!(CFG.url && CFG.anonKey);
+var sb = null;
+if (PROD && window.supabase) sb = window.supabase.createClient(CFG.url, CFG.anonKey);
+
+var S = {fund:null, members:[], contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]};
+var ME = null;
+var ui = {tab:'resumen', userId:'m1', cMember:'todos', cStatus:'todos', stMember:null};
+
+/* =====================================================================
+   REGLAS DE NEGOCIO (iguales en demo y real; en real la base las vuelve a validar)
+   ===================================================================== */
+var isAdmin = function(){ return !!ME && ME.role==='admin'; };
+var isStaff = function(){ return !!ME && (ME.role==='admin'||ME.role==='veedor'); };
+var member = function(id){ return byId(S.members,id); };
+var mname = function(id){ var m=member(id); return m?m.name:'—'; };
+var amountFor = function(mod){ return mod==='quincenal'?S.fund.biweeklyAmt:S.fund.monthlyAmt; };
+var paymentsOf = function(id){ return S.payments.filter(function(p){ return p.loanId===id; }); };
+function loanBalance(l){ return l.amount - sum(paymentsOf(l.id).filter(function(p){ return p.status==='aprobado'; }), function(p){ return p.capital; }); }
+function feeNow(c){
+  var f=S.fund; if(!(f.lateFee>0)) return 0;
+  return todayISO() > iso(addDays(parseISO(c.due), f.graceDays)) ? f.lateFee : 0;
+}
+function isLate(c){ return (c.status==='pendiente'||c.status==='rechazado') && c.due<todayISO(); }
+function fundEnd(){ var p=parseISO(S.fund.startDate); return iso(new Date(p.getFullYear(),p.getMonth()+S.fund.months,0)); }
+function monthsElapsed(){
+  var s=parseISO(S.fund.startDate);
+  return Math.max(0, Math.min(S.fund.months, (new Date()-s)/(1000*60*60*24*30.4375)));
+}
+function loanOverdue(l){
+  if(l.status!=='activo'||!l.approvedAt) return false;
+  var a=parseISO(l.approvedAt); var due=new Date(a.getFullYear(),a.getMonth()+l.term,a.getDate());
+  return iso(due)<todayISO() && loanBalance(l)>0;
+}
+function totals(){
+  var contrib=sum(S.contributions.filter(function(c){ return c.status==='aprobado'; }), function(c){ return c.amount; });
+  var fees=sum(S.contributions.filter(function(c){ return c.status==='aprobado'; }), function(c){ return c.fee||0; });
+  var ok=S.payments.filter(function(p){ return p.status==='aprobado'; });
+  var interest=sum(ok,function(p){ return p.interest; });
+  var capRet=sum(ok,function(p){ return p.capital; });
+  var disbursed=sum(S.loans.filter(function(l){ return l.status==='activo'||l.status==='pagado'; }), function(l){ return l.amount; });
+  var cash=contrib+fees+interest+capRet-disbursed;
+  var reserve=Math.round(S.fund.reservePct*contrib);
+  return {contrib:contrib, fees:fees, interest:interest, capRet:capRet, disbursed:disbursed, onLoan:disbursed-capRet,
+          cash:cash, reserve:reserve, lendable:Math.max(0,cash-reserve)};
+}
+function weight(c){
+  if(S.fund.interestMode==='tiempo') return c.amount*(daysBetween(c.due, fundEnd())+1);
+  return c.amount;
+}
+function settlementLive(){
+  var t=totals(), el=Math.max(0.5, monthsElapsed()), pool=t.interest+t.fees;
+  var act=S.members.filter(function(m){ return m.active; });
+  var mine=function(m){ return S.contributions.filter(function(c){ return c.memberId===m.id; }); };
+  var W=function(m){ return sum(mine(m).filter(function(c){ return c.status==='aprobado'; }), weight); };
+  var WE=function(m){ return sum(mine(m), weight); };
+  var tw=sum(act,W), twe=sum(act,WE), projPool=pool/el*S.fund.months;
+  return act.map(function(m){
+    var c=sum(mine(m).filter(function(x){ return x.status==='aprobado'; }), function(x){ return x.amount; });
+    var exp=sum(mine(m), function(x){ return x.amount; });
+    var gain=tw?pool*W(m)/tw:0;
+    var debt=sum(S.loans.filter(function(l){ return l.memberId===m.id&&l.status==='activo'; }), loanBalance);
+    return {id:m.id, name:m.name, c:c, share:t.contrib?c/t.contrib:0, gain:gain, debt:debt, net:c+gain-debt, proj:exp+(twe?projPool*WE(m)/twe:0)};
+  });
+}
+function settlement(){
+  if(S.fund.closed && S.snapshot){
+    return S.snapshot.map(function(r){ return {id:r.fund_member_id, name:r.full_name, c:r.saved, share:Number(r.share), gain:Number(r.profit_share), debt:r.loan_debt, net:Number(r.net), proj:null}; });
+  }
+  return settlementLive();
+}
+function pendingReview(){
+  return S.contributions.filter(function(c){ return c.status==='revision'; }).length + S.payments.filter(function(p){ return p.status==='revision'; }).length;
+}
+
+/* =====================================================================
+   COMPROBANTES: compresión, huella SHA-256 y lectura
+   ===================================================================== */
+async function sha256(buf){
+  if(!(window.crypto && crypto.subtle)) return null;
+  var d=await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(d)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+function blobToDataURL(b){
+  return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){ res(r.result); }; r.onerror=function(){ rej(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(b); });
+}
+async function prepareEvidence(file){
+  if(!file) throw new Error('Adjunta el comprobante de la consignación.');
+  var hash=await sha256(await file.arrayBuffer());
+  if(file.type==='application/pdf'){
+    if(file.size>(PROD?1500000:600000)) throw new Error('El PDF es muy pesado. Sube una foto del comprobante o un PDF más liviano.');
+    return {blob:file, type:file.type, name:file.name, ext:'pdf', hash:hash};
+  }
+  if(file.type.indexOf('image/')!==0) throw new Error('Sube una imagen (JPG o PNG) o un PDF.');
+  var bmp; try{ bmp=await createImageBitmap(file); }catch(e){ throw new Error('No se pudo leer la imagen.'); }
+  var s=Math.min(1, 900/Math.max(bmp.width,bmp.height)), c=document.createElement('canvas');
+  c.width=Math.round(bmp.width*s); c.height=Math.round(bmp.height*s);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  var blob=await new Promise(function(res){ c.toBlob(res,'image/jpeg',0.72); });
+  if(!blob) throw new Error('No se pudo procesar la imagen.');
+  return {blob:blob, type:'image/jpeg', name:file.name, ext:'jpg', hash:hash};
+}
+
+/* =====================================================================
+   CAPA DE DATOS · MODO DEMO (todo en el navegador)
+   ===================================================================== */
+var KEY='natillera_v2_demo';
+function saveDemo(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function loadDemo(){ try{ var r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
+
+function schedule(modality, startISO, months){
+  var p=parseISO(startISO), out=[];
+  for(var i=0;i<months;i++){
+    var y=p.getFullYear(), m=p.getMonth()+i;
+    if(modality==='quincenal'){ out.push(iso(new Date(y,m,15))); }
+    out.push(iso(new Date(y,m+1,0)));
+  }
+  return out;
+}
+function genContribs(m){
+  var amt=amountFor(m.modality);
+  return schedule(m.modality, S.fund.startDate, S.fund.months).map(function(d,i){
+    return {id:uid(), memberId:m.id, n:i+1, due:d, amount:amt, fee:0, status:'pendiente', evidence:null, note:'', adminNote:'', paidAt:null};
+  });
+}
+function receipt(label){
+  var svg="<svg xmlns='http://www.w3.org/2000/svg' width='320' height='260'><rect width='100%' height='100%' fill='#f7f5ef'/><text x='20' y='40' font-family='monospace' font-size='16' fill='#222'>COMPROBANTE DE EJEMPLO</text><text x='20' y='80' font-family='monospace' font-size='13' fill='#444'>"+label+"</text><line x1='20' y1='100' x2='300' y2='100' stroke='#999'/><text x='20' y='140' font-family='monospace' font-size='13' fill='#444'>Transferencia exitosa</text></svg>";
+  return {name:'comprobante-demo.svg', type:'image/svg+xml', data:'data:image/svg+xml;utf8,'+encodeURIComponent(svg), hash:'demo-'+uid()};
+}
+function seedDemo(){
+  var now=new Date(), start=iso(new Date(now.getFullYear(), now.getMonth()-2, 1));
+  S={
+    fund:{id:'f1', name:'Natillera Amigos 14', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
+          maxLoanMultiple:1, maxActiveLoans:1, lateFee:5000, graceDays:3, reservePct:0.10, interestMode:'tiempo', closed:false, closedAt:null},
+    members:[
+      {id:'m1',profileId:'m1',name:'Laura Gómez',email:'laura@ejemplo.co',phone:'3001110001',role:'admin',modality:'mensual',active:true},
+      {id:'m2',profileId:'m2',name:'Carlos Rojas',email:'carlos@ejemplo.co',phone:'3001110002',role:'socio',modality:'mensual',active:true},
+      {id:'m3',profileId:'m3',name:'Marta Díaz',email:'marta@ejemplo.co',phone:'3001110003',role:'socio',modality:'mensual',active:true},
+      {id:'m4',profileId:'m4',name:'Andrés Pérez',email:'andres@ejemplo.co',phone:'3001110004',role:'socio',modality:'quincenal',active:true},
+      {id:'m5',profileId:'m5',name:'Sofía Herrera',email:'sofia@ejemplo.co',phone:'3001110005',role:'socio',modality:'quincenal',active:true},
+      {id:'m6',profileId:'m6',name:'Julián Torres',email:'julian@ejemplo.co',phone:'3001110006',role:'veedor',modality:'mensual',active:true}
+    ],
+    contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]
+  };
+  var today=todayISO();
+  S.members.forEach(function(m,k){
+    var list=genContribs(m);
+    var past=list.filter(function(c){ return c.due<today; });
+    past.forEach(function(c,j){
+      var last=j===past.length-1, mode=k%3;
+      if(!last || mode===2){ c.status='aprobado'; c.evidence=receipt('Cuota '+c.n+' - '+m.name); c.paidAt=c.due; }
+      else if(mode===0){ c.status='revision'; c.evidence=receipt('Cuota '+c.n+' - '+m.name); c.paidAt=today; }
+    });
+    S.contributions=S.contributions.concat(list);
+  });
+  S.loans=[
+    {id:'l1',memberId:'m3',amount:150000,term:3,status:'activo',requestedAt:iso(addDays(now,-22)),approvedAt:iso(addDays(now,-20)),note:'Calamidad doméstica'},
+    {id:'l2',memberId:'m4',amount:100000,term:2,status:'solicitado',requestedAt:iso(addDays(now,-1)),approvedAt:null,note:'Matrícula de estudio'}
+  ];
+  S.payments=[{id:'p1',loanId:'l1',date:iso(addDays(now,-3)),amount:54500,interest:4500,capital:50000,status:'aprobado',evidence:receipt('Pago préstamo - Marta Díaz'),note:''}];
+  S.log=[{t:new Date().toISOString(),who:'Sistema',text:'Fondo creado con datos de demostración'}];
+  saveDemo();
+}
+function hashUsed(h, except){
+  if(!h) return false;
+  var ex=except||[];
+  var inC=S.contributions.some(function(c){ return c.evidence&&c.evidence.hash===h&&c.status!=='rechazado'&&ex.indexOf(c.id)<0; });
+  var inP=S.payments.some(function(p){ return p.evidence&&p.evidence.hash===h&&p.status!=='rechazado'; });
+  return inC||inP;
+}
+function logDemo(text){ S.log.unshift({t:new Date().toISOString(), who:ME?ME.name:'Sistema', text:text}); S.log=S.log.slice(0,80); }
+
+var demoApi={
+  init:async function(){ S=loadDemo(); if(!S||!S.fund||!S.fund.reservePct&&S.fund.reservePct!==0) seedDemo(); setMe(); },
+  reload:async function(){ saveDemo(); },
+  reset:async function(){ seedDemo(); ui.userId='m1'; setMe(); },
+  submitContribs:async function(ids, ev, note){
+    if(S.fund.closed) throw new Error('El fondo ya está cerrado.');
+    if(hashUsed(ev.hash, ids)) throw new Error(DUP);
+    var data=await blobToDataURL(ev.blob), today=todayISO();
+    ids.forEach(function(id){
+      var c=byId(S.contributions,id);
+      c.status='revision'; c.evidence={name:ev.name,type:ev.type,data:data,hash:ev.hash}; c.note=note; c.adminNote=''; c.paidAt=today; c.fee=feeNow(c);
+    });
+    logDemo('Subió comprobante de '+ids.length+' cuota'+(ids.length>1?'s':'')+' ('+mname(byId(S.contributions,ids[0]).memberId)+')'); saveDemo();
+  },
+  reviewContrib:async function(id, ok, note, waive){
+    var c=byId(S.contributions,id);
+    c.status=ok?'aprobado':'rechazado'; c.adminNote=ok?'':note;
+    if(ok&&waive) c.fee=0;
+    logDemo((ok?'Aprobó':'Rechazó')+' la cuota '+c.n+' de '+mname(c.memberId)); saveDemo();
+  },
+  requestLoan:async function(memberId, amount, term, reason){
+    var t=totals(), m=member(memberId), f=S.fund;
+    if(!isAdmin() && memberId!==ME.id) throw new Error('Socio no válido.');
+    if(f.closed) throw new Error('El fondo ya está cerrado.');
+    var saved=sum(S.contributions.filter(function(c){ return c.memberId===memberId&&c.status==='aprobado'; }), function(c){ return c.amount; });
+    if(amount>saved*f.maxLoanMultiple) throw new Error('El préstamo no puede ser superior a '+(f.maxLoanMultiple===1?(isAdmin()?'el ahorro total aprobado del socio':'tu ahorro total aprobado'):f.maxLoanMultiple+' veces el ahorro aprobado')+' ('+fmt(saved*f.maxLoanMultiple)+').');
+    if(amount>t.lendable) throw new Error(isStaff()?'Supera lo disponible para prestar ('+fmt(t.lendable)+').':'En este momento el fondo no tiene disponibilidad para ese monto. Consulta con el administrador.');
+    var busy=S.loans.filter(function(l){ return l.memberId===memberId&&(l.status==='solicitado'||l.status==='activo'); }).length;
+    if(busy>=f.maxActiveLoans) throw new Error(isAdmin()?'El socio ya tiene el máximo de préstamos vigentes.':'Ya tienes el máximo de préstamos vigentes o en solicitud.');
+    S.loans.push({id:uid(),memberId:memberId,amount:amount,term:term,status:'solicitado',requestedAt:todayISO(),approvedAt:null,note:reason});
+    logDemo((isAdmin()?'Registró':'Solicitó')+' un préstamo de '+fmt(amount)+' ('+m.name+')'); saveDemo();
+  },
+  reviewLoan:async function(id, ok){
+    var l=byId(S.loans,id), t=totals();
+    if(ok&&l.amount>t.lendable) throw new Error('Supera lo disponible para prestar ('+fmt(t.lendable)+').');
+    l.status=ok?'activo':'rechazado'; if(ok) l.approvedAt=todayISO();
+    logDemo((ok?'Aprobó':'Rechazó')+' el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)); saveDemo();
+  },
+  submitPayment:async function(loanId, amount, ev, note){
+    var ln=byId(S.loans,loanId);
+    if(!ln||ln.status!=='activo'||!(isAdmin()||ln.memberId===ME.id)) throw new Error('No puedes reportar pago para este préstamo.');
+    if(hashUsed(ev.hash)) throw new Error(DUP);
+    var data=await blobToDataURL(ev.blob);
+    S.payments.push({id:uid(),loanId:loanId,date:todayISO(),amount:amount,interest:0,capital:0,status:'revision',evidence:{name:ev.name,type:ev.type,data:data,hash:ev.hash},note:note});
+    logDemo('Registró un pago de '+fmt(amount)+' del préstamo de '+mname(byId(S.loans,loanId).memberId)); saveDemo();
+  },
+  reviewPayment:async function(id, ok, interest, note){
+    var p=byId(S.payments,id), l=byId(S.loans,p.loanId);
+    if(ok){
+      var bal=loanBalance(l), cap=p.amount-interest;
+      if(interest<0||interest>p.amount) throw new Error('El interés debe estar entre 0 y '+fmt(p.amount)+'.');
+      if(cap>bal) throw new Error('El capital ('+fmt(cap)+') supera el saldo ('+fmt(bal)+'). Sube la parte de interés.');
+      p.interest=interest; p.capital=cap; p.status='aprobado';
+      if(loanBalance(l)<=0) l.status='pagado';
+    } else { p.status='rechazado'; p.note=note; }
+    logDemo((ok?'Aprobó':'Rechazó')+' un pago de '+fmt(p.amount)+' de '+mname(l.memberId)); saveDemo();
+  },
+  addMember:async function(o){
+    var m={id:uid(),profileId:null,name:o.name,email:o.email,phone:o.phone,role:o.role,modality:o.modality,active:true};
+    S.members.push(m); S.contributions=S.contributions.concat(genContribs(m));
+    logDemo('Agregó al socio '+o.name); saveDemo();
+  },
+  saveSettings:async function(o){ Object.assign(S.fund,o); logDemo('Actualizó las reglas del fondo'); saveDemo(); },
+  createFund:async function(){},
+  closeFund:async function(){
+    S.snapshot=settlementLive().map(function(r){ return {fund_member_id:r.id, full_name:r.name, saved:r.c, share:r.share, profit_share:r.gain, loan_debt:r.debt, net:r.net}; });
+    S.fund.closed=true; S.fund.closedAt=new Date().toISOString();
+    logDemo('Cerró el fondo'); saveDemo();
+  },
+  evidenceUrl:async function(ev){ return ev.data; }
+};
+
+/* =====================================================================
+   CAPA DE DATOS · MODO REAL (Supabase)
+   ===================================================================== */
+function must(r){ if(r.error) throw new Error(r.error.message||String(r.error)); return r.data; }
+async function fetchAll(build){
+  var out=[], from=0, step=1000;
+  for(;;){
+    var rows=must(await build().range(from, from+step-1));
+    out=out.concat(rows); if(rows.length<step) break; from+=step;
+  }
+  return out;
+}
+var ACTION_TXT={subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
+  registrar_prestamo:'Registró un préstamo',aprobar_prestamo:'Aprobó un préstamo',rechazar_prestamo:'Rechazó un préstamo',
+  reportar_pago_prestamo:'Registró un pago de préstamo',aprobar_pago:'Aprobó un pago de préstamo',rechazar_pago:'Rechazó un pago de préstamo',cerrar_fondo:'Cerró el fondo'};
+
+async function loadAll(){
+  var u=(await sb.auth.getUser()).data.user; if(!u) throw new Error('Sesión vencida. Vuelve a ingresar.');
+  var prof=must(await sb.from('profiles').select('*').eq('id',u.id).single());
+  var staff=(prof.role==='admin'||prof.role==='veedor');
+  var funds=must(await sb.from('funds').select('*').order('created_at',{ascending:false}).limit(1));
+  S={fund:null, members:[], contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]};
+  if(staff){ S.profiles=must(await sb.from('profiles').select('*').order('full_name')); }
+  ME={id:null, profileId:u.id, name:prof.full_name, role:prof.role, phone:prof.phone};
+  if(!funds.length) return;
+  var f=funds[0];
+  S.fund={id:f.id,name:f.name,startDate:f.start_date,months:f.months,rate:Number(f.loan_rate),monthlyAmt:f.monthly_amount,biweeklyAmt:f.biweekly_amount,
+    maxLoanMultiple:Number(f.max_loan_multiple),maxActiveLoans:f.max_active_loans,lateFee:f.late_fee,graceDays:f.grace_days,
+    reservePct:Number(f.reserve_pct),interestMode:f.interest_mode,closed:f.closed,closedAt:f.closed_at};
+  var fm=must(await sb.from('fund_members').select('id,mode,active,profile_id,profiles(full_name,email,phone,role)').eq('fund_id',f.id));
+  S.members=fm.map(function(r){ var p=r.profiles||{}; return {id:r.id,profileId:r.profile_id,name:p.full_name||'—',email:p.email||'',phone:p.phone||'',role:p.role||'socio',modality:r.mode,active:r.active}; });
+  var mine=S.members.filter(function(m){ return m.profileId===u.id; })[0];
+  ME.id=mine?mine.id:null;
+  var ids=S.members.map(function(m){ return m.id; });
+  var cs=ids.length?await fetchAll(function(){ return sb.from('contributions').select('*').in('fund_member_id',ids).order('due_date'); }):[];
+  S.contributions=cs.map(function(c){ return {id:c.id,memberId:c.fund_member_id,n:c.n,due:c.due_date,amount:c.amount,fee:c.fee||0,status:c.status,
+    evidence:c.evidence_path?{path:c.evidence_path,name:c.evidence_path.split('/').pop(),type:/\.pdf$/i.test(c.evidence_path)?'application/pdf':'image/jpeg'}:null,
+    note:c.member_note||'',adminNote:c.admin_note||'',paidAt:c.paid_at}; });
+  var ls=must(await sb.from('loans').select('*').order('requested_at',{ascending:false}));
+  S.loans=ls.map(function(l){ return {id:l.id,memberId:l.fund_member_id,amount:l.amount,term:l.term_months,status:l.status,requestedAt:(l.requested_at||'').slice(0,10),approvedAt:l.approved_at?l.approved_at.slice(0,10):null,note:l.reason||''}; });
+  var ps=await fetchAll(function(){ return sb.from('loan_payments').select('*').order('paid_at'); });
+  S.payments=ps.map(function(p){ return {id:p.id,loanId:p.loan_id,date:(p.paid_at||'').slice(0,10),amount:p.amount,interest:p.interest,capital:p.capital,status:p.status,
+    evidence:p.evidence_path?{path:p.evidence_path,name:p.evidence_path.split('/').pop(),type:/\.pdf$/i.test(p.evidence_path)?'application/pdf':'image/jpeg'}:null,note:p.admin_note||''}; });
+  if(staff){
+    var names={}; S.profiles.forEach(function(p){ names[p.id]=p.full_name; });
+    var lg=must(await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(80));
+    S.log=lg.map(function(e){ var d=e.detail||{}; return {t:e.created_at,who:names[e.actor]||'—',text:(ACTION_TXT[e.action]||e.action)+(d.monto?' ('+fmt(d.monto)+')':'')}; });
+    if(f.closed){ var sn=must(await sb.from('settlement_snapshots').select('rows').eq('fund_id',f.id).limit(1)); S.snapshot=sn.length?sn[0].rows:null; }
+  } else if(f.closed){
+    var my=must(await sb.rpc('my_settlement',{p_fund:f.id})); S.mine=my.length?my[0]:null;
+  }
+}
+async function uploadEvidence(ev, kind){
+  var path=ME.profileId+'/'+kind+'-'+uid()+'.'+ev.ext;
+  var r=await sb.storage.from('evidencias').upload(path, ev.blob, {contentType:ev.type, upsert:false});
+  if(r.error) throw new Error('No se pudo subir el archivo: '+r.error.message);
+  return path;
+}
+var prodApi={
+  init:async function(){},
+  reload:async function(){ await loadAll(); },
+  submitContribs:async function(ids, ev, note){
+    var path=await uploadEvidence(ev,'aporte');
+    must(await sb.rpc('submit_contributions',{p_ids:ids,p_path:path,p_note:note||null,p_hash:ev.hash}));
+    await loadAll();
+  },
+  reviewContrib:async function(id, ok, note, waive){
+    must(await sb.rpc('review_contribution',{p_id:id,p_approve:ok,p_note:note||null,p_waive_fee:!!waive})); await loadAll();
+  },
+  requestLoan:async function(memberId, amount, term, reason){
+    must(await sb.rpc('request_loan',{p_fund_member:memberId,p_amount:amount,p_term:term,p_reason:reason||null})); await loadAll();
+  },
+  reviewLoan:async function(id, ok){ must(await sb.rpc('review_loan',{p_id:id,p_approve:ok})); await loadAll(); },
+  submitPayment:async function(loanId, amount, ev, note){
+    var path=await uploadEvidence(ev,'pago');
+    must(await sb.rpc('submit_loan_payment',{p_loan:loanId,p_amount:amount,p_path:path,p_note:note||null,p_hash:ev.hash})); await loadAll();
+  },
+  reviewPayment:async function(id, ok, interest, note){
+    must(await sb.rpc('review_loan_payment',{p_id:id,p_approve:ok,p_interest:ok?interest:null,p_note:note||null})); await loadAll();
+  },
+  addMember:async function(o){
+    must(await sb.from('profiles').update({role:o.role,phone:o.phone||null}).eq('id',o.profileId));
+    must(await sb.from('fund_members').insert({fund_id:S.fund.id,profile_id:o.profileId,mode:o.modality}));
+    await loadAll();
+  },
+  saveSettings:async function(o){
+    must(await sb.from('funds').update({name:o.name,loan_rate:o.rate,max_loan_multiple:o.maxLoanMultiple,max_active_loans:o.maxActiveLoans,
+      late_fee:o.lateFee,grace_days:o.graceDays,reserve_pct:o.reservePct,interest_mode:o.interestMode}).eq('id',S.fund.id));
+    await loadAll();
+  },
+  createFund:async function(o){
+    must(await sb.from('funds').insert({name:o.name,start_date:o.startDate,months:o.months,monthly_amount:o.monthlyAmt,biweekly_amount:o.biweeklyAmt,loan_rate:o.rate}));
+    await loadAll();
+  },
+  closeFund:async function(){ must(await sb.rpc('close_fund',{p_fund:S.fund.id})); await loadAll(); },
+  evidenceUrl:async function(ev){
+    var r=await sb.storage.from('evidencias').createSignedUrl(ev.path,120);
+    if(r.error) throw new Error('No se pudo abrir el comprobante.');
+    return r.data.signedUrl;
+  }
+};
+var api = PROD ? prodApi : demoApi;
+
+function setMe(){
+  if(PROD) return;
+  var m=member(ui.userId)||S.members[0]; ui.userId=m.id; ME=m; S.mine=null;
+  if(S.fund.closed&&S.snapshot){ var r=S.snapshot.filter(function(x){ return x.fund_member_id===m.id; })[0]; if(r) S.mine={saved:r.saved,profit_share:r.profit_share,loan_debt:r.loan_debt,net:r.net}; }
+}
+
+/* =====================================================================
+   PIEZAS DE INTERFAZ
+   ===================================================================== */
+var PILL={pendiente:['Pendiente',''],revision:['En revisión','warn'],aprobado:['Aprobado','good'],rechazado:['Rechazado','bad'],mora:['En mora','bad'],
+  activo:['Activo','good'],solicitado:['Solicitado','warn'],pagado:['Pagado',''],vencido:['Vencido','bad']};
+function pill(k){ var p=PILL[k]||[k,'']; return '<span class="pill '+p[1]+'">'+p[0]+'</span>'; }
+function cPill(c){ return pill(c.status==='pendiente'&&isLate(c)?'mora':c.status); }
+var ROLE_TXT={admin:'Administrador',veedor:'Veedor',socio:'Socio'};
+
+function modal(title, html){
+  var m=$('#modal');
+  m.innerHTML='<div class="mbox" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="mhead"><h3>'+esc(title)+'</h3><button class="icon" type="button" data-act="close" aria-label="Cerrar">×</button></div><div class="mbody">'+html+'</div></div>';
+  m.hidden=false;
+  Array.prototype.forEach.call(m.querySelectorAll('form'), function(fm){ fm.noValidate=true; });
+  var f=m.querySelector('input,select,textarea'); if(f) f.focus();
+}
+function closeModal(){ var m=$('#modal'); m.hidden=true; m.innerHTML=''; }
+var toastT;
+function visFerr(){ var all=document.querySelectorAll('#ferr'); for(var i=0;i<all.length;i++){ if(all[i].offsetParent!==null) return all[i]; } return null; }
+function ferr(msg){
+  var e=visFerr();
+  if(e){ e.style.color=''; e.textContent=msg||''; return; }
+  var t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){ t.hidden=true; },5000);
+}
+function showOnly(which){
+  $('#loginBox').hidden=which!=='login'; $('#msgBox').hidden=which!=='msg'; $('#appBox').hidden=which!=='app';
+  $('header.top').hidden=which==='login'||which==='msg'; $('#demoNotice').hidden=PROD||which!=='app';
+}
+function showMsg(t){ $('#msgText').textContent=t; showOnly('msg'); }
+function evButton(kind,id){ return '<button class="btn sm ghost" type="button" data-act="view-ev" data-kind="'+kind+'" data-id="'+id+'">Ver</button>'; }
+function waLink(m, text){
+  var ph=((m&&m.phone)||'').replace(/\D/g,''); if(ph.length===10) ph='57'+ph;
+  return 'https://wa.me/'+ph+'?text='+encodeURIComponent(text);
+}
+function printHead(title, sub){
+  return '<div class="printhead"><h2>'+esc(S.fund.name)+' · '+esc(title)+'</h2><p class="muted">'+esc(sub||'')+' · Generado el '+fdate(todayISO())+'</p></div>';
+}
+function lockNote(txt){ return '<div class="lock">'+txt+'</div>'; }
+
+/* =====================================================================
+   VISTAS
+   ===================================================================== */
+function myList(){ return ME&&ME.id ? S.contributions.filter(function(c){ return c.memberId===ME.id; }) : []; }
+
+function myCard(){
+  var mine=myList(), u=ME, today=todayISO(), f=S.fund;
+  var paid=sum(mine.filter(function(c){ return c.status==='aprobado'; }), function(c){ return c.amount; });
+  var dueNow=sum(mine.filter(function(c){ return c.due<=today; }), function(c){ return c.amount; });
+  var late=mine.filter(isLate);
+  var open=mine.filter(function(c){ return c.status==='pendiente'||c.status==='rechazado'; }).sort(function(a,b){ return a.due<b.due?-1:1; });
+  var next=open[0], mem=member(u.id);
+  var h='<div class="card"><header><h2>Mi situación</h2><span class="muted sm">'+esc(u.name)+' · aporte '+(mem.modality==='quincenal'?'quincenal':'mensual')+' de '+fmt(amountFor(mem.modality))+'</span></header>'+
+    '<div class="stats">'+
+      '<div><small>Aportado y aprobado</small><b>'+fmt(paid)+'</b></div>'+
+      '<div><small>Debía pagar a hoy</small><b>'+fmt(dueNow)+'</b></div>'+
+      '<div><small>Estado</small><b>'+(late.length?'<span class="pill bad">'+late.length+' cuota'+(late.length>1?'s':'')+' en mora</span>':'<span class="pill good">Al día</span>')+'</b></div>'+
+      '<div><small>Próxima cuota</small><b>'+(next?fdate(next.due)+' · '+fmt(next.amount):'—')+'</b></div>'+
+    '</div>';
+  if(!f.closed){ h+='<div class="actions" style="margin-top:12px">'+(next?'<button class="btn" type="button" data-act="upload-contrib" data-id="'+next.id+'">Subir comprobante</button>':'')+'<button class="btn ghost" type="button" data-act="new-loan">Solicitar préstamo</button></div>'; }
+  if(f.lateFee>0) h+='<p class="muted sm" style="margin:12px 0 0">Si pagas más de '+f.graceDays+' días después de la fecha límite, se cobra una multa de '+fmt(f.lateFee)+' por cuota.</p>';
+  return h+'</div>';
+}
+
+function progressCard(){
+  var el=monthsElapsed(), pct=Math.round(el/S.fund.months*100);
+  return '<div class="card"><header><h2>Avance del fondo</h2><span class="muted sm">Cierre: '+fdate(fundEnd())+'</span></header>'+
+     '<div class="bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'+
+     '<p class="muted sm" style="margin:8px 0 0">Mes '+Math.min(S.fund.months, Math.floor(el)+1)+' de '+S.fund.months+' · inicio '+fdate(S.fund.startDate)+'</p></div>';
+}
+
+function monthChart(){
+  var p=parseISO(S.fund.startDate), today=new Date(), rows='';
+  for(var i=0;i<S.fund.months;i++){
+    var d=new Date(p.getFullYear(), p.getMonth()+i, 1);
+    if(d>today) break;
+    var key=d.getFullYear()+'-'+pad(d.getMonth()+1);
+    var inMonth=S.contributions.filter(function(c){ return c.due.slice(0,7)===key; });
+    var exp=sum(inMonth,function(c){ return c.amount; }), ok=sum(inMonth.filter(function(c){ return c.status==='aprobado'; }),function(c){ return c.amount; });
+    rows+='<div class="rowbar"><span>'+d.toLocaleDateString('es-CO',{month:'short',year:'numeric'})+'</span><div class="bar"><i style="width:'+(exp?Math.round(ok/exp*100):0)+'%"></i></div><span class="num">'+fmt(ok)+'</span></div>';
+  }
+  return '<div class="card"><header><h2>Aportes aprobados por mes</h2><span class="muted sm">La barra muestra qué parte de lo esperado ya está aprobada</span></header>'+(rows||'<p class="muted">Aún no hay meses para mostrar.</p>')+'</div>';
+}
+
+function viewResumen(){
+  var f=S.fund, h='';
+  if(isStaff()){
+    var t=totals(), pend=pendingReview(), loansReq=S.loans.filter(function(l){ return l.status==='solicitado'; }).length, rows=settlement();
+    var maxC=Math.max.apply(null, rows.map(function(r){ return r.c; }).concat([1]));
+    if(f.closed) h+=lockNote('<b>Fondo cerrado</b> el '+fdate(f.closedAt)+'. Ya no se registran aportes ni préstamos.');
+    h+='<div class="grid g4">'+
+     '<div class="card kpi"><small>Disponible para prestar</small><strong class="num">'+fmt(t.lendable)+'</strong><em>Caja '+fmt(t.cash)+' − reserva '+fmt(t.reserve)+'</em></div>'+
+     '<div class="card kpi"><small>Total ahorrado (aprobado)</small><strong class="num">'+fmt(t.contrib)+'</strong><em>'+S.members.filter(function(m){return m.active;}).length+' socios activos</em></div>'+
+     '<div class="card kpi"><small>Prestado en circulación</small><strong class="num">'+fmt(t.onLoan)+'</strong><em>Capital pendiente de cobro</em></div>'+
+     '<div class="card kpi"><small>Ganancias del fondo</small><strong class="num">'+fmt(t.interest+t.fees)+'</strong><em>Intereses '+fmt(t.interest)+' · multas '+fmt(t.fees)+'</em></div>'+
+    '</div>'+progressCard();
+    h+='<div class="grid g2">';
+    if(ME.id) h+=myCard();
+    h+=isAdmin()?
+      '<div class="card"><header><h2>Por revisar</h2></header><div class="stats"><div><small>Comprobantes de aportes</small><b>'+S.contributions.filter(function(c){return c.status==='revision';}).length+'</b></div><div><small>Pagos de préstamos</small><b>'+S.payments.filter(function(p){return p.status==='revision';}).length+'</b></div><div><small>Préstamos por aprobar</small><b>'+loansReq+'</b></div></div><p class="muted sm" style="margin:12px 0 0">'+(pend+loansReq?'Revisa las pestañas Aportes y Préstamos.':'No hay pendientes.')+'</p></div>':
+      '<div class="card"><header><h2>Rol de veedor</h2></header><p class="sm muted" style="margin:0">Puedes ver todo el fondo, los comprobantes y la actividad. No puedes aprobar ni modificar nada.</p></div>';
+    h+='</div>'+monthChart();
+    h+='<div class="card"><header><h2>Ahorro por socio</h2><span class="muted sm">Participación sobre el total aprobado</span></header>';
+    rows.forEach(function(r){ h+='<div class="rowbar"><span>'+esc(r.name)+'</span><div class="bar"><i style="width:'+Math.round(r.c/maxC*100)+'%"></i></div><span class="num">'+(r.share*100).toFixed(1)+'%</span></div>'; });
+    return h+'</div>';
+  }
+  h+=progressCard();
+  if(ME.id) h+=myCard(); else h+='<div class="card empty">Tu usuario aún no está inscrito en el fondo. Pídele al administrador que te registre.</div>';
+  if(f.closed&&S.mine){
+    h+='<div class="card"><header><h2>Mi liquidación final</h2><span class="muted sm">Fondo cerrado el '+fdate(f.closedAt)+'</span></header><div class="stats"><div><small>Mi ahorro</small><b>'+fmt(S.mine.saved)+'</b></div><div><small>Mi parte de las ganancias</small><b>'+fmt(S.mine.profit_share)+'</b></div><div><small>Descuentos</small><b>'+fmt(S.mine.loan_debt)+'</b></div><div><small>Total a recibir</small><b>'+fmt(S.mine.net)+'</b></div></div></div>';
+  } else {
+    h+='<div class="card"><header><h2>Cómo funciona</h2></header><p class="sm muted" style="margin:0">Sube el comprobante de cada consignación en la pestaña Mis aportes. El administrador lo revisa y lo aprueba. Si necesitas dinero, puedes solicitar un préstamo en Mis préstamos. Al cierre del fondo recibes lo que ahorraste más tu parte de las ganancias.</p></div>';
+  }
+  return h;
+}
+
+function viewAportes(){
+  var admin=isAdmin(), staff=isStaff(), u=ME, list=S.contributions.slice();
+  if(!staff) list=list.filter(function(c){ return c.memberId===u.id; });
+  else if(ui.cMember!=='todos') list=list.filter(function(c){ return c.memberId===ui.cMember; });
+  if(ui.cStatus==='mora') list=list.filter(isLate);
+  else if(ui.cStatus!=='todos') list=list.filter(function(c){ return c.status===ui.cStatus; });
+  list.sort(function(a,b){ return a.due<b.due?-1:a.due>b.due?1:0; });
+  var counts={}; S.contributions.forEach(function(c){ counts[c.memberId]=(counts[c.memberId]||0)+1; });
+  var h='<div class="card"><header><h2>'+(staff?'Aportes de todos los socios':'Mis aportes')+'</h2></header><div class="filters">';
+  if(staff) h+='<label>Socio<select data-bind="cMember"><option value="todos">Todos</option>'+S.members.map(function(m){ return '<option value="'+m.id+'"'+(ui.cMember===m.id?' selected':'')+'>'+esc(m.name)+'</option>'; }).join('')+'</select></label>';
+  var st=[['todos','Todos'],['pendiente','Pendiente'],['revision','En revisión'],['aprobado','Aprobado'],['rechazado','Rechazado'],['mora','En mora']];
+  h+='<label>Estado<select data-bind="cStatus">'+st.map(function(s){ return '<option value="'+s[0]+'"'+(ui.cStatus===s[0]?' selected':'')+'>'+s[1]+'</option>'; }).join('')+'</select></label></div>';
+  if(S.fund.lateFee>0) h+='<p class="muted sm" style="margin:12px 0 0">Multa por mora: '+fmt(S.fund.lateFee)+' por cuota pagada con más de '+S.fund.graceDays+' días de atraso.</p>';
+  h+='</div><div class="card"><div class="tablebox"><table><thead><tr><th>Fecha límite</th>'+(staff?'<th>Socio</th>':'')+'<th>Cuota</th><th class="r">Monto</th><th class="r">Multa</th><th>Estado</th><th>Comprobante</th><th class="no-print">Acciones</th></tr></thead><tbody>';
+  if(!list.length) h+='<tr><td colspan="8" class="empty">No hay aportes con este filtro.</td></tr>';
+  list.forEach(function(c){
+    var act='', open=(c.status==='pendiente'||c.status==='rechazado');
+    if(open && !S.fund.closed && (admin||c.memberId===u.id)) act+='<button class="btn sm" type="button" data-act="upload-contrib" data-id="'+c.id+'">Subir comprobante</button>';
+    if(admin && c.status==='revision') act+='<button class="btn sm" type="button" data-act="approve-contrib" data-id="'+c.id+'">Aprobar</button><button class="btn sm danger" type="button" data-act="reject-contrib" data-id="'+c.id+'">Rechazar</button>';
+    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la natillera ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Puedes subir tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
+    var fee=open?feeNow(c):(c.fee||0);
+    h+='<tr><td>'+fdate(c.due)+'</td>'+(staff?'<td>'+esc(mname(c.memberId))+'</td>':'')+'<td>'+c.n+' de '+counts[c.memberId]+'</td><td class="r num">'+fmt(c.amount)+'</td><td class="r num">'+(fee?(open?'<span class="muted">'+fmt(fee)+' si pagas hoy</span>':fmt(fee)):'—')+'</td><td>'+cPill(c)+(c.status==='rechazado'&&c.adminNote?'<div class="muted sm">'+esc(c.adminNote)+'</div>':'')+'</td><td>'+(c.evidence?evButton('c',c.id):'<span class="muted">—</span>')+'</td><td class="no-print"><div class="actions">'+act+'</div></td></tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+function loanLimitNote(memberId){
+  var f=S.fund, saved=sum(S.contributions.filter(function(c){ return c.memberId===memberId&&c.status==='aprobado'; }), function(c){ return c.amount; });
+  return f.maxLoanMultiple===1
+    ? 'El valor del préstamo no puede ser superior a tu ahorro total aprobado ('+fmt(saved)+').'
+    : 'El valor del préstamo no puede superar '+f.maxLoanMultiple+' veces tu ahorro total aprobado ('+fmt(saved*f.maxLoanMultiple)+').';
+}
+function viewPrestamos(){
+  var admin=isAdmin(), staff=isStaff(), t=staff?totals():null, closed=S.fund.closed;
+  var loans=S.loans.filter(function(l){ return staff||l.memberId===ME.id; }).sort(function(a,b){ return a.requestedAt<b.requestedAt?1:-1; });
+  var h='<div class="card"><header><h2>'+(staff?'Préstamos':'Mis préstamos')+'</h2>'+
+    (admin&&!closed?'<button class="btn" type="button" data-act="new-loan">Registrar préstamo</button>':'')+
+    (!staff&&ME.id&&!closed?'<button class="btn" type="button" data-act="new-loan">Solicitar préstamo</button>':'')+'</header>';
+  if(staff){
+    h+='<p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. Disponible para prestar: <b class="num">'+fmt(t.lendable)+'</b> (caja '+fmt(t.cash)+' menos reserva '+fmt(t.reserve)+'). Tope por socio: '+S.fund.maxLoanMultiple+' vez/veces lo ahorrado; máximo '+S.fund.maxActiveLoans+' préstamo(s) vigente(s).</p>';
+  } else {
+    h+='<div class="lock" style="margin-bottom:8px">'+(ME.id?loanLimitNote(ME.id):'')+'</div><p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. El administrador debe aprobar tu solicitud. Para pagar o abonar, usa el botón <b>Registrar pago o abono</b> en tu préstamo y sube el comprobante.</p>';
+  }
+  h+='</div>';
+  if(!loans.length) h+='<div class="card empty">'+(staff?'Aún no hay préstamos.':'Aún no tienes préstamos.')+'</div>';
+  loans.forEach(function(l){
+    var bal=loanBalance(l), pays=paymentsOf(l.id).slice().sort(function(a,b){ return a.date<b.date?1:-1; }), act='';
+    if(admin && l.status==='solicitado') act+='<button class="btn sm" type="button" data-act="approve-loan" data-id="'+l.id+'">Aprobar y desembolsar</button><button class="btn sm danger" type="button" data-act="reject-loan" data-id="'+l.id+'">Rechazar</button>';
+    if(l.status==='activo' && (admin||l.memberId===ME.id)) act+='<button class="btn sm" type="button" data-act="pay-loan" data-id="'+l.id+'">'+(admin?'Registrar pago':'Registrar pago o abono')+'</button>';
+    h+='<div class="card loan"><div class="loan-top"><div><h3>'+(staff?esc(mname(l.memberId))+' · ':'')+fmt(l.amount)+'</h3><span class="muted sm">'+(staff?'Registrado ':'Solicitado ')+fdate(l.requestedAt)+(l.approvedAt?' · desembolsado '+fdate(l.approvedAt):'')+' · plazo '+l.term+' mes(es)'+(l.note?' · '+esc(l.note):'')+'</span></div><div class="actions">'+pill(l.status)+(loanOverdue(l)?pill('vencido'):'')+'</div></div>';
+    if(l.status==='activo'||l.status==='pagado') h+='<div class="stats"><div><small>Saldo de capital</small><b>'+fmt(bal)+'</b></div><div><small>Interés del próximo mes</small><b>'+fmt(bal*S.fund.rate)+'</b></div><div><small>Intereses pagados</small><b>'+fmt(sum(pays.filter(function(p){return p.status==='aprobado';}),function(p){return p.interest;}))+'</b></div></div>';
+    if(pays.length){
+      h+='<div class="tablebox"><table><thead><tr><th>Fecha</th><th class="r">Pagado</th><th class="r">Interés</th><th class="r">Capital</th><th>Estado</th><th>Comprobante</th><th></th></tr></thead><tbody>';
+      pays.forEach(function(p){
+        h+='<tr><td>'+fdate(p.date)+'</td><td class="r num">'+fmt(p.amount)+'</td><td class="r num">'+(p.status==='aprobado'?fmt(p.interest):'—')+'</td><td class="r num">'+(p.status==='aprobado'?fmt(p.capital):'—')+'</td><td>'+pill(p.status)+(p.status==='rechazado'&&p.note?'<div class="muted sm">'+esc(p.note)+'</div>':'')+'</td><td>'+(p.evidence?evButton('p',p.id):'—')+'</td><td>'+(admin&&p.status==='revision'?'<div class="actions"><button class="btn sm" type="button" data-act="approve-pay" data-id="'+p.id+'">Aprobar</button><button class="btn sm danger" type="button" data-act="reject-pay" data-id="'+p.id+'">Rechazar</button></div>':'')+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    if(act) h+='<div class="actions">'+act+'</div>';
+    h+='</div>';
+  });
+  return h;
+}
+
+function viewLiquidacion(){
+  var rows=settlement(), t=totals(), f=S.fund, admin=isAdmin();
+  var h=printHead('Liquidación', f.closed?'Acta de cierre del '+fdate(f.closedAt):'Liquidación proyectada');
+  h+='<div class="card"><header><h2>'+(f.closed?'Acta de cierre':'Liquidación al cierre')+'</h2><div class="actions no-print"><button class="btn sm ghost" type="button" data-act="csv">Copiar como CSV</button><button class="btn sm ghost" type="button" data-act="print">Imprimir</button>'+(admin&&!f.closed?'<button class="btn sm" type="button" data-act="close-fund">Cerrar fondo</button>':'')+'</div></header>';
+  if(f.closed) h+=lockNote('Fondo cerrado el '+fdate(f.closedAt)+'. Estas cifras quedaron congeladas.');
+  h+='<p class="muted sm" style="margin:12px 0">Cada socio recibe lo que ahorró más una parte de las ganancias (intereses + multas: <b class="num">'+fmt(t.interest+t.fees)+'</b>). Reparto: '+(f.interestMode==='tiempo'?'según ahorro por tiempo en el fondo (quien aporta antes gana más)':'proporcional al monto ahorrado')+'. El saldo de préstamos vigentes se descuenta.</p>'+
+    '<div class="tablebox"><table><thead><tr><th>Socio</th><th class="r">Ahorrado</th><th class="r">Participación</th><th class="r">Ganancias</th><th class="r">Saldo préstamo</th><th class="r">Neto a recibir</th>'+(f.closed?'':'<th class="r">Proyección al cierre</th>')+'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td>'+esc(r.name)+'</td><td class="r num">'+fmt(r.c)+'</td><td class="r num">'+(r.share*100).toFixed(1)+'%</td><td class="r num">'+fmt(r.gain)+'</td><td class="r num">'+fmt(r.debt)+'</td><td class="r num"><b>'+fmt(r.net)+'</b></td>'+(f.closed?'':'<td class="r num">'+fmt(r.proj)+'</td>')+'</tr>';
+  });
+  h+='</tbody></table></div>'+(f.closed?'':'<p class="muted sm" style="margin:12px 0 0">La proyección supone que todos pagan todas sus cuotas y que las ganancias siguen al ritmo actual. Es una estimación.</p>')+'</div>';
+  return h;
+}
+
+function viewEstado(){
+  var staff=isStaff(), f=S.fund, mid=staff?(ui.stMember||ME.id||(S.members[0]&&S.members[0].id)):ME.id;
+  if(!mid) return '<div class="card empty">Tu usuario aún no está inscrito en el fondo.</div>';
+  var m=member(mid), list=S.contributions.filter(function(c){ return c.memberId===mid; }).sort(function(a,b){ return a.due<b.due?-1:1; }), today=todayISO();
+  var paid=sum(list.filter(function(c){ return c.status==='aprobado'; }), function(c){ return c.amount; });
+  var fees=sum(list.filter(function(c){ return c.status==='aprobado'; }), function(c){ return c.fee||0; });
+  var dueNow=sum(list.filter(function(c){ return c.due<=today; }), function(c){ return c.amount; });
+  var h=printHead('Estado de cuenta', m.name);
+  h+='<div class="card"><header><h2>Estado de cuenta</h2><div class="actions no-print">';
+  if(staff) h+='<select data-bind="stMember" aria-label="Socio">'+S.members.map(function(x){ return '<option value="'+x.id+'"'+(x.id===mid?' selected':'')+'>'+esc(x.name)+'</option>'; }).join('')+'</select>';
+  h+='<button class="btn sm ghost" type="button" data-act="print">Imprimir o guardar PDF</button></div></header>'+
+     '<p style="margin:0 0 12px"><b>'+esc(m.name)+'</b> · '+(m.modality==='quincenal'?'ahorro quincenal':'ahorro mensual')+' de '+fmt(amountFor(m.modality))+'</p>'+
+     '<div class="stats"><div><small>Ahorro aprobado</small><b>'+fmt(paid)+'</b></div><div><small>Debía pagar a hoy</small><b>'+fmt(dueNow)+'</b></div><div><small>Diferencia</small><b>'+fmt(paid-dueNow)+'</b></div><div><small>Multas pagadas</small><b>'+fmt(fees)+'</b></div></div></div>';
+  if(f.closed && !staff && S.mine) h+='<div class="card"><header><h2>Liquidación final</h2></header><div class="stats"><div><small>Ahorro</small><b>'+fmt(S.mine.saved)+'</b></div><div><small>Parte de ganancias</small><b>'+fmt(S.mine.profit_share)+'</b></div><div><small>Descuentos</small><b>'+fmt(S.mine.loan_debt)+'</b></div><div><small>Total a recibir</small><b>'+fmt(S.mine.net)+'</b></div></div></div>';
+  {
+    var ls=S.loans.filter(function(l){ return l.memberId===mid; });
+    if(ls.length) h+='<div class="card"><header><h2>Préstamos del socio</h2></header>'+ls.map(function(l){ return '<p style="margin:4px 0">'+fmt(l.amount)+' · '+pill(l.status)+' · saldo '+fmt(loanBalance(l))+'</p>'; }).join('')+'</div>';
+  }
+  h+='<div class="card"><div class="tablebox"><table><thead><tr><th>Fecha límite</th><th>Cuota</th><th class="r">Monto</th><th class="r">Multa</th><th>Estado</th><th>Enviado</th></tr></thead><tbody>';
+  list.forEach(function(c){ h+='<tr><td>'+fdate(c.due)+'</td><td>'+c.n+'</td><td class="r num">'+fmt(c.amount)+'</td><td class="r num">'+(c.fee?fmt(c.fee):'—')+'</td><td>'+cPill(c)+'</td><td>'+fdate(c.paidAt)+'</td></tr>'; });
+  return h+'</tbody></table></div></div>';
+}
+
+function viewSocios(){
+  var admin=isAdmin();
+  var h='<div class="card"><header><h2>Socios</h2>'+(admin?'<button class="btn" type="button" data-act="new-member">Agregar socio</button>':'')+'</header><div class="tablebox"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Modalidad</th><th class="r">Aporte</th><th class="r">Ahorrado</th></tr></thead><tbody>';
+  S.members.forEach(function(m){
+    var c=sum(S.contributions.filter(function(x){ return x.memberId===m.id&&x.status==='aprobado'; }), function(x){ return x.amount; });
+    h+='<tr><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(m.phone||'—')+'</td><td>'+(m.role==='socio'?'Socio':'<span class="pill good">'+ROLE_TXT[m.role]+'</span>')+'</td><td>'+(m.modality==='quincenal'?'Quincenal':'Mensual')+'</td><td class="r num">'+fmt(amountFor(m.modality))+'</td><td class="r num">'+fmt(c)+'</td></tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+function viewAjustes(){
+  var f=S.fund, d=f.closed?' disabled':'';
+  return '<div class="card"><header><h2>Reglas del fondo</h2></header><form id="settings" data-form="settings" style="display:grid;gap:12px;max-width:520px">'+
+   '<label class="sm muted">Nombre del fondo<input type="text" id="s-name" value="'+esc(f.name)+'"'+d+'></label>'+
+   '<label class="sm muted">Tasa de interés de préstamos, mensual (%)<input type="number" id="s-rate" step="0.1" min="0" value="'+(f.rate*100)+'"'+d+'></label>'+
+   '<label class="sm muted">Tope de préstamo (veces lo ahorrado; 1 = no puede superar su ahorro total)<input type="number" id="s-mult" step="0.5" min="0.5" value="'+f.maxLoanMultiple+'"'+d+'></label>'+
+   '<label class="sm muted">Préstamos vigentes por socio (máximo)<input type="number" id="s-maxl" step="1" min="1" value="'+f.maxActiveLoans+'"'+d+'></label>'+
+   '<label class="sm muted">Multa por cuota atrasada (COP, 0 = sin multa)<input type="number" id="s-fee" step="500" min="0" value="'+f.lateFee+'"'+d+'></label>'+
+   '<label class="sm muted">Días de gracia antes de cobrar multa<input type="number" id="s-grace" step="1" min="0" value="'+f.graceDays+'"'+d+'></label>'+
+   '<label class="sm muted">Reserva de caja que no se presta (% del ahorro)<input type="number" id="s-res" step="1" min="0" max="90" value="'+(f.reservePct*100)+'"'+d+'></label>'+
+   '<label class="sm muted">Reparto de ganancias<select id="s-mode"'+d+'><option value="tiempo"'+(f.interestMode==='tiempo'?' selected':'')+'>Según ahorro por tiempo (recomendado)</option><option value="monto"'+(f.interestMode==='monto'?' selected':'')+'>Proporcional al monto ahorrado</option></select></label>'+
+   '<p class="muted sm" style="margin:0">Fijos al crear el fondo: inicio '+fdate(f.startDate)+', duración '+f.months+' meses, aporte mensual '+fmt(f.monthlyAmt)+' o quincenal '+fmt(f.biweeklyAmt)+'.</p>'+
+   '<p class="err" id="ferr" role="alert"></p><div><button class="btn" type="submit"'+d+'>Guardar cambios</button></div></form></div>';
+}
+
+function viewActividad(){
+  var h='<div class="card"><header><h2>Actividad reciente</h2><span class="muted sm">Quién hizo qué y cuándo</span></header><div class="tablebox"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr></thead><tbody>';
+  S.log.forEach(function(e){ h+='<tr><td class="sm">'+new Date(e.t).toLocaleString('es-CO')+'</td><td>'+esc(e.who)+'</td><td>'+esc(e.text)+'</td></tr>'; });
+  return h+'</tbody></table></div></div>';
+}
+
+function viewNoFund(){
+  if(!isAdmin()) return '<div class="card empty">El administrador aún no ha creado el fondo. Vuelve a intentarlo más tarde.</div>';
+  var d=iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  return '<div class="card"><header><h2>Crear el fondo</h2></header><form data-form="create-fund" style="display:grid;gap:12px;max-width:520px">'+
+    '<label class="sm muted">Nombre<input type="text" id="n-name" value="Natillera Amigos"></label>'+
+    '<label class="sm muted">Fecha de inicio<input type="date" id="n-start" value="'+d+'"></label>'+
+    '<label class="sm muted">Duración (meses)<input type="number" id="n-months" value="14"></label>'+
+    '<label class="sm muted">Aporte mensual (COP)<input type="number" id="n-mon" value="100000"></label>'+
+    '<label class="sm muted">Aporte quincenal (COP)<input type="number" id="n-bi" value="50000"></label>'+
+    '<label class="sm muted">Interés mensual de préstamos (%)<input type="number" id="n-rate" step="0.1" value="3"></label>'+
+    '<p class="err" id="ferr" role="alert"></p><div><button class="btn" type="submit">Crear fondo</button></div></form></div>';
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+function render(){
+  if(!ME){ return; }
+  var staff=isStaff(), admin=isAdmin();
+  $('#fundName').textContent=S.fund?S.fund.name:'Natillera Digital';
+  $('#fundSub').textContent=S.fund?('Fondo de '+S.fund.months+' meses · '+ROLE_TXT[ME.role]+(S.fund.closed?' · cerrado':'')):ROLE_TXT[ME.role];
+  $('#demoWho').hidden=PROD; $('#prodWho').hidden=!PROD; $('#meName').textContent=ME.name+' · '+ROLE_TXT[ME.role];
+  if(!PROD) $('#userSel').innerHTML=S.members.map(function(m){ return '<option value="'+m.id+'"'+(m.id===ui.userId?' selected':'')+'>'+esc(m.name)+' ('+ROLE_TXT[m.role].toLowerCase()+')</option>'; }).join('');
+  if(!S.fund){ $('#tabs').innerHTML=''; $('#view').innerHTML=viewNoFund(); Array.prototype.forEach.call(document.querySelectorAll('#view form'), function(fm){ fm.noValidate=true; }); showOnly('app'); return; }
+  var tabs=[['resumen','Resumen'],['aportes',staff?'Aportes':'Mis aportes'],['prestamos',staff?'Préstamos':'Mis préstamos']];
+  if(staff) tabs.push(['liquidacion','Liquidación']);
+  tabs.push(['estado','Estado de cuenta']);
+  if(staff) tabs.push(['socios','Socios']);
+  if(admin) tabs.push(['ajustes','Reglas']);
+  if(staff) tabs.push(['actividad','Actividad']);
+  if(!tabs.some(function(t){ return t[0]===ui.tab; })) ui.tab='resumen';
+  var pc=S.contributions.filter(function(c){ return c.status==='revision'; }).length;
+  var pl=S.payments.filter(function(p){ return p.status==='revision'; }).length+S.loans.filter(function(l){ return l.status==='solicitado'; }).length;
+  $('#tabs').innerHTML=tabs.map(function(t){
+    var b=''; if(admin&&t[0]==='aportes'&&pc) b='<span class="badge">'+pc+'</span>'; if(admin&&t[0]==='prestamos'&&pl) b='<span class="badge">'+pl+'</span>';
+    return '<button type="button" data-act="tab" data-tab="'+t[0]+'"'+(ui.tab===t[0]?' aria-current="page"':'')+'>'+t[1]+b+'</button>';
+  }).join('');
+  var v={resumen:viewResumen,aportes:viewAportes,prestamos:viewPrestamos,liquidacion:viewLiquidacion,estado:viewEstado,socios:viewSocios,ajustes:viewAjustes,actividad:viewActividad}[ui.tab];
+  $('#view').innerHTML=v();
+  Array.prototype.forEach.call(document.querySelectorAll('#view form'), function(fm){ fm.noValidate=true; });
+  showOnly('app');
+}
+
+/* =====================================================================
+   ACCIONES
+   ===================================================================== */
+function done(p){ return p.then(function(){ closeModal(); render(); }).catch(function(e){ ferr(e.message||String(e)); }); }
+var H={};
+H.tab=function(d){ ui.tab=d.tab; render(); };
+H.close=closeModal;
+H.reset=function(){ demoApi.reset().then(function(){ ui.tab='resumen'; render(); }); };
+H.print=function(){ try{ window.print(); }catch(e){ ferr('Tu navegador no permite imprimir desde aquí.'); } };
+H.logout=function(){ sb.auth.signOut().then(function(){ ME=null; showOnly('login'); }); };
+H['change-pass']=function(){
+  modal('Cambiar contraseña','<form data-form="change-pass" style="display:grid;gap:12px"><label>Nueva contraseña (mínimo 8 caracteres)<input type="password" id="np1" autocomplete="new-password"></label><label>Repítela<input type="password" id="np2" autocomplete="new-password"></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar</button></form>');
+};
+
+H['view-ev']=function(d){
+  var item=byId(d.kind==='c'?S.contributions:S.payments, d.id);
+  if(!item||!item.evidence) return;
+  var ev=item.evidence;
+  api.evidenceUrl(ev).then(function(url){
+    var body=ev.type==='application/pdf'
+      ? '<p>Archivo PDF: <b>'+esc(ev.name)+'</b></p><p><a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Abrir PDF</a></p>'
+      : '<img class="evimg" src="'+esc(url)+'" alt="Comprobante de consignación">';
+    modal('Comprobante', body);
+  }).catch(function(e){ ferr(e.message); });
+};
+
+function batchTotal(){
+  var tot=0, n=0;
+  Array.prototype.forEach.call(document.querySelectorAll('#modal .cb-c'), function(cb){ if(cb.checked){ tot+=Number(cb.dataset.amt)+Number(cb.dataset.fee); n++; } });
+  var el=$('#b-total'); if(el) el.innerHTML='Total a consignar ('+n+' cuota'+(n===1?'':'s')+'): <b class="num">'+fmt(tot)+'</b>';
+}
+H['upload-contrib']=function(d){
+  var c=byId(S.contributions,d.id);
+  var cands=S.contributions.filter(function(x){ return x.memberId===c.memberId&&(x.status==='pendiente'||x.status==='rechazado'); }).sort(function(a,b){ return a.n-b.n; }).slice(0,12);
+  modal('Subir comprobante','<form data-form="upload-contrib" style="display:grid;gap:12px">'+
+    '<p style="margin:0"><b>'+esc(mname(c.memberId))+'</b></p>'+
+    '<div style="display:grid;gap:4px">'+cands.map(function(x){ var fee=feeNow(x);
+      return '<label class="chk"><input type="checkbox" class="cb-c" value="'+x.id+'" data-amt="'+x.amount+'" data-fee="'+fee+'"'+(x.id===c.id?' checked':'')+'> Cuota '+x.n+' · vence '+fdate(x.due)+' · '+fmt(x.amount)+(fee?' + multa '+fmt(fee):'')+'</label>'; }).join('')+'</div>'+
+    '<div class="preview" id="b-total"></div>'+
+    '<label>Foto o PDF de la consignación<input type="file" id="f-file" accept="image/*,application/pdf"></label>'+
+    '<label>Nota (opcional)<textarea id="f-note" placeholder="Ej. Nequi, referencia 12345"></textarea></label>'+
+    '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Enviar a revisión</button></form>');
+  batchTotal();
+};
+function doApprove(id, waive){ done(api.reviewContrib(id,true,null,waive)); }
+H['approve-contrib']=function(d){
+  var c=byId(S.contributions,d.id);
+  if(c.fee>0) modal('Aprobar aporte','<p style="margin:0">Esta cuota se pagó con atraso y tiene una multa de <b class="num">'+fmt(c.fee)+'</b>.</p><div class="actions"><button class="btn" type="button" data-act="approve-do" data-id="'+c.id+'" data-waive="0">Aprobar y cobrar multa</button><button class="btn ghost" type="button" data-act="approve-do" data-id="'+c.id+'" data-waive="1">Aprobar y condonar multa</button></div>');
+  else doApprove(c.id,false);
+};
+H['approve-do']=function(d){ doApprove(d.id, d.waive==='1'); };
+H['reject-contrib']=function(d){
+  modal('Rechazar comprobante','<form data-form="reject-contrib" data-id="'+d.id+'" style="display:grid;gap:12px"><label>Motivo (el socio lo verá)<textarea id="f-note" placeholder="Ej. El valor no coincide con la cuota"></textarea></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Rechazar</button></form>');
+};
+
+function loanPreview(){
+  var a=Number($('#l-amount').value)||0, n=Number($('#l-term').value)||1, el=$('#l-prev');
+  if(el) el.innerHTML='Interés mensual: <b class="num">'+fmt(a*S.fund.rate)+'</b>. Si se paga el capital al final de '+n+' mes'+(n>1?'es':'')+', serían <b class="num">'+fmt(a*S.fund.rate*n)+'</b> en intereses.';
+}
+H['new-loan']=function(){
+  var admin=isAdmin(), t=admin?totals():null;
+  var sel=admin?'<label>Socio<select id="l-member">'+S.members.map(function(m){ return '<option value="'+m.id+'">'+esc(m.name)+'</option>'; }).join('')+'</select></label><p class="muted sm" style="margin:0">Disponible para prestar: '+fmt(t.lendable)+'. El tope depende del ahorro de cada socio ('+S.fund.maxLoanMultiple+' vez/veces).</p>'
+    :'<div class="lock">'+loanLimitNote(ME.id)+'</div>';
+  modal(admin?'Registrar préstamo':'Solicitar préstamo','<form data-form="new-loan" style="display:grid;gap:12px">'+sel+
+    '<label>Monto (COP)<input type="number" id="l-amount" value="100000"></label>'+
+    '<label>Plazo (meses)<input type="number" id="l-term" min="1" max="12" value="2"></label>'+
+    '<label>Motivo<input type="text" id="l-note" placeholder="Ej. Gastos de matrícula"></label>'+
+    '<div class="preview" id="l-prev"></div><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">'+(admin?'Registrar solicitud':'Enviar solicitud')+'</button></form>');
+  loanPreview();
+};
+H['approve-loan']=function(d){ done(api.reviewLoan(d.id,true)); };
+H['reject-loan']=function(d){ done(api.reviewLoan(d.id,false)); };
+H['pay-loan']=function(d){
+  var l=byId(S.loans,d.id), bal=loanBalance(l), intr=Math.round(bal*S.fund.rate);
+  modal(isAdmin()?'Registrar pago de préstamo':'Registrar pago o abono','<form data-form="pay-loan" data-id="'+l.id+'" data-int="'+intr+'" data-bal="'+bal+'" style="display:grid;gap:12px">'+
+    '<p style="margin:0">'+(isAdmin()?esc(mname(l.memberId))+' · ':'')+'saldo de capital <b class="num">'+fmt(bal)+'</b>. Interés de este mes: <b class="num">'+fmt(intr)+'</b>.</p>'+
+    '<label>¿Qué estás pagando?<select id="p-type"><option value="interes">Solo el interés del mes</option><option value="abono">Interés y abono a capital</option><option value="total">Cancelar el préstamo (saldo + interés)</option></select></label>'+
+    '<label>Valor consignado (COP)<input type="number" id="p-amount" value="'+intr+'"></label>'+
+    '<p class="muted sm" style="margin:0" id="p-help">Consigna el interés del mes y sube el comprobante.</p>'+
+    '<label>Comprobante<input type="file" id="f-file" accept="image/*,application/pdf"></label>'+
+    '<label>Nota (opcional)<input type="text" id="f-note"></label>'+
+    '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Enviar a revisión</button></form>');
+};
+var PAY_TXT={interes:'Solo interés',abono:'Interés y abono a capital',total:'Cancelación total'};
+function payTypeChange(){
+  var f=$('#modal form'); if(!f) return;
+  var t=$('#p-type').value, intr=Number(f.dataset.int), bal=Number(f.dataset.bal), amt=$('#p-amount'), help=$('#p-help');
+  if(t==='interes'){ amt.value=intr; help.textContent='Consigna el interés del mes y sube el comprobante.'; }
+  else if(t==='total'){ amt.value=bal+intr; help.textContent='Es el saldo de capital más el interés de este mes. El préstamo queda pagado cuando el administrador apruebe.'; }
+  else { amt.value=intr; help.textContent='Escribe el valor total que consignaste (interés más lo que abonas al capital). El administrador lo divide al aprobar.'; amt.focus(); amt.select(); }
+}
+function capPreview(){
+  var p=byId(S.payments,$('#frm-pay').dataset.id), i=Number($('#p-int').value)||0, el=$('#p-cap');
+  if(el) el.textContent=fmt(p.amount-i);
+}
+H['approve-pay']=function(d){
+  var p=byId(S.payments,d.id), l=byId(S.loans,p.loanId), bal=loanBalance(l), defInt=Math.min(p.amount, Math.round(bal*S.fund.rate));
+  modal('Aprobar pago','<form id="frm-pay" data-form="approve-pay" data-id="'+p.id+'" style="display:grid;gap:12px">'+
+    '<p style="margin:0">'+esc(mname(l.memberId))+' consignó <b class="num">'+fmt(p.amount)+'</b>. Divide el pago entre intereses y capital.</p>'+
+    '<label>Parte que es interés<input type="number" id="p-int" value="'+defInt+'"></label>'+
+    '<div class="preview">Capital que abona: <b class="num" id="p-cap">'+fmt(p.amount-defInt)+'</b> · saldo actual '+fmt(bal)+'</div>'+
+    '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Aprobar pago</button></form>');
+};
+H['reject-pay']=function(d){
+  modal('Rechazar pago','<form data-form="reject-pay" data-id="'+d.id+'" style="display:grid;gap:12px"><label>Motivo<textarea id="f-note"></textarea></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Rechazar</button></form>');
+};
+H['new-member']=function(){
+  var body;
+  if(PROD){
+    var free=S.profiles.filter(function(p){ return !S.members.some(function(m){ return m.profileId===p.id; }); });
+    if(!free.length){ modal('Agregar socio','<p style="margin:0">Primero crea el usuario en Supabase: <b>Authentication → Users → Add user</b>. Luego vuelve aquí y aparecerá en esta lista.</p>'); return; }
+    body='<label>Persona registrada<select id="m-profile">'+free.map(function(p){ return '<option value="'+p.id+'">'+esc(p.full_name)+' · '+esc(p.email)+'</option>'; }).join('')+'</select></label>';
+  } else {
+    body='<label>Nombre completo<input type="text" id="m-name"></label><label>Correo<input type="text" id="m-email" placeholder="socio@correo.com"></label>';
+  }
+  modal('Agregar socio','<form data-form="new-member" style="display:grid;gap:12px">'+body+
+    '<label>Teléfono (para WhatsApp)<input type="text" id="m-phone" placeholder="3001234567"></label>'+
+    '<label>Rol<select id="m-role"><option value="socio">Socio</option><option value="veedor">Veedor (solo lectura de todo)</option><option value="admin">Administrador</option></select></label>'+
+    '<label>Modalidad de ahorro<select id="m-mod"><option value="mensual">Mensual ('+fmt(S.fund.monthlyAmt)+')</option><option value="quincenal">Quincenal ('+fmt(S.fund.biweeklyAmt)+')</option></select></label>'+
+    '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Agregar y generar calendario</button></form>');
+};
+H.csv=function(){
+  var rows=[['Socio','Ahorrado','Participacion','Ganancias','Saldo prestamo','Neto']].concat(settlement().map(function(r){ return [r.name, Math.round(r.c), (r.share*100).toFixed(2)+'%', Math.round(r.gain), Math.round(r.debt), Math.round(r.net)]; }));
+  var txt=rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  modal('Liquidación en CSV','<textarea id="csvbox" readonly style="min-height:200px;font-family:monospace;font-size:12px">'+esc(txt)+'</textarea><button class="btn" type="button" data-act="copycsv">Copiar</button><p class="muted sm" id="csvmsg" style="margin:0"></p>');
+};
+H.copycsv=function(){
+  var box=$('#csvbox'), msg=$('#csvmsg'); box.select();
+  try{ navigator.clipboard.writeText(box.value).then(function(){ msg.textContent='Copiado.'; },function(){ msg.textContent='Selecciona el texto y cópialo manualmente.'; }); }
+  catch(e){ msg.textContent='Selecciona el texto y cópialo manualmente.'; }
+};
+H['close-fund']=function(){
+  var pend=pendingReview(), act=S.loans.filter(function(l){ return l.status==='activo'; }).length;
+  if(pend){ modal('Antes de cerrar','<p style="margin:0">Hay <b>'+pend+'</b> comprobante(s) por revisar. Apruébalos o recházalos antes de cerrar el fondo.</p>'); return; }
+  modal('Cerrar el fondo','<p style="margin:0">Al cerrar, la liquidación queda <b>congelada</b> como acta y ya no se podrán registrar aportes ni préstamos. <b>No se puede deshacer.</b></p>'+(act?'<p class="lock" style="margin:0">Hay '+act+' préstamo(s) activo(s): su saldo se descontará a cada socio en la liquidación.</p>':'')+'<p class="err" id="ferr" role="alert"></p><button class="btn" type="button" data-act="close-fund-do">Sí, cerrar el fondo</button>');
+};
+H['close-fund-do']=function(){ done(api.closeFund()); };
+
+/* ---------- formularios ---------- */
+var F={};
+F.login=function(){
+  var email=($('#lg-email').value||'').trim(), pass=$('#lg-pass').value;
+  if(!email||!pass) return ferr('Escribe tu correo y tu contraseña.');
+  return sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
+    if(r.error) throw new Error('Correo o contraseña incorrectos.');
+    return loadAll();
+  }).then(function(){ $('#lg-pass').value=''; render(); }).catch(function(e){ ferr(e.message); });
+};
+F['change-pass']=function(){
+  var a=$('#np1').value, b=$('#np2').value;
+  if(a.length<8) return ferr('Usa al menos 8 caracteres.');
+  if(a!==b) return ferr('Las dos contraseñas no coinciden.');
+  return sb.auth.updateUser({password:a}).then(function(r){ if(r.error) throw new Error(r.error.message); closeModal(); ferr('Contraseña actualizada.'); }).catch(function(e){ ferr(e.message); });
+};
+F['upload-contrib']=function(){
+  var ids=Array.prototype.filter.call(document.querySelectorAll('#modal .cb-c'), function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
+  if(!ids.length) return ferr('Marca al menos una cuota.');
+  return prepareEvidence($('#f-file').files[0]).then(function(ev){ return api.submitContribs(ids, ev, ($('#f-note').value||'').trim()); }).then(function(){ closeModal(); render(); }).catch(function(e){ ferr(e.message); });
+};
+F['reject-contrib']=function(f){
+  var n=($('#f-note').value||'').trim();
+  if(!n) return ferr('Escribe el motivo para que el socio sepa qué corregir.');
+  return done(api.reviewContrib(f.dataset.id,false,n,false));
+};
+F['new-loan']=function(){
+  var a=Number($('#l-amount').value), n=Number($('#l-term').value);
+  if(!(a>=10000)) return ferr('Ingresa un monto de al menos $10.000.');
+  if(!(n>=1)) return ferr('El plazo debe ser de al menos 1 mes.');
+  var who=isAdmin()?$('#l-member').value:ME.id;
+  var saved=sum(S.contributions.filter(function(c){ return c.memberId===who&&c.status==='aprobado'; }), function(c){ return c.amount; });
+  if(a>saved*S.fund.maxLoanMultiple) return ferr(loanLimitNote(who).replace('El valor','El valor ')+' Ingresa un monto menor.');
+  return done(api.requestLoan(who, a, n, ($('#l-note').value||'').trim()));
+};
+F['pay-loan']=function(f){
+  var a=Number($('#p-amount').value);
+  if(!(a>0)) return ferr('Ingresa el valor consignado.');
+  var note='['+PAY_TXT[$('#p-type').value]+'] '+($('#f-note').value||'').trim();
+  return prepareEvidence($('#f-file').files[0]).then(function(ev){ return api.submitPayment(f.dataset.id, a, ev, note.trim()); }).then(function(){ closeModal(); render(); }).catch(function(e){ ferr(e.message); });
+};
+F['approve-pay']=function(f){ return done(api.reviewPayment(f.dataset.id,true,Number($('#p-int').value),'')); };
+F['reject-pay']=function(f){
+  var n=($('#f-note').value||'').trim(); if(!n) return ferr('Escribe el motivo del rechazo.');
+  return done(api.reviewPayment(f.dataset.id,false,0,n));
+};
+F['new-member']=function(){
+  var o={phone:($('#m-phone').value||'').trim(), role:$('#m-role').value, modality:$('#m-mod').value};
+  if(PROD){ o.profileId=$('#m-profile').value; }
+  else {
+    o.name=($('#m-name').value||'').trim(); o.email=($('#m-email').value||'').trim();
+    if(!o.name) return ferr('Escribe el nombre del socio.');
+    if(!/^\S+@\S+\.\S+$/.test(o.email)) return ferr('Escribe un correo válido.');
+  }
+  return done(api.addMember(o));
+};
+F.settings=function(){
+  var o={name:($('#s-name').value||'').trim(), rate:Number($('#s-rate').value)/100, maxLoanMultiple:Number($('#s-mult').value), maxActiveLoans:Number($('#s-maxl').value),
+         lateFee:Number($('#s-fee').value), graceDays:Number($('#s-grace').value), reservePct:Number($('#s-res').value)/100, interestMode:$('#s-mode').value};
+  if(!o.name) return ferr('El fondo necesita un nombre.');
+  if(!(o.rate>=0&&o.rate<=0.2)) return ferr('La tasa debe estar entre 0% y 20%.');
+  if(!(o.maxLoanMultiple>0)||!(o.maxActiveLoans>=1)) return ferr('Revisa el tope y el máximo de préstamos.');
+  if(!(o.lateFee>=0)||!(o.graceDays>=0)) return ferr('La multa y los días de gracia no pueden ser negativos.');
+  if(!(o.reservePct>=0&&o.reservePct<=0.9)) return ferr('La reserva debe estar entre 0% y 90%.');
+  return api.saveSettings(o).then(function(){ render(); var e=visFerr(); if(e){ e.style.color='var(--good)'; e.textContent='Cambios guardados.'; } }).catch(function(e){ ferr(e.message); });
+};
+F['create-fund']=function(){
+  var o={name:($('#n-name').value||'').trim(), startDate:$('#n-start').value, months:Number($('#n-months').value), monthlyAmt:Number($('#n-mon').value), biweeklyAmt:Number($('#n-bi').value), rate:Number($('#n-rate').value)/100};
+  if(!o.name||!o.startDate) return ferr('Escribe el nombre y la fecha de inicio.');
+  if(!(o.months>=1&&o.months<=36)) return ferr('La duración debe estar entre 1 y 36 meses.');
+  if(!(o.monthlyAmt>0)||!(o.biweeklyAmt>0)) return ferr('Los aportes deben ser mayores que cero.');
+  return done(api.createFund(o));
+};
+
+/* ---------- eventos ---------- */
+document.addEventListener('click', function(e){
+  var t=e.target.closest('[data-act]');
+  if(t){ if(H[t.dataset.act]) H[t.dataset.act](t.dataset); return; }
+  if(e.target.id==='modal') closeModal();
+});
+document.addEventListener('submit', function(e){
+  e.preventDefault();
+  var f=e.target, fn=f.dataset.form&&F[f.dataset.form]; if(!fn) return;
+  var btn=f.querySelector('button[type=submit]'); if(btn) btn.disabled=true;
+  Promise.resolve().then(function(){ return fn(f); }).catch(function(err){ ferr(err.message||String(err)); }).then(function(){ if(btn) btn.disabled=false; });
+});
+document.addEventListener('change', function(e){
+  var b=e.target.dataset&&e.target.dataset.bind;
+  if(e.target.id==='p-type'){ payTypeChange(); return; }
+  if(b){ ui[b]=e.target.value; if(b==='userId') setMe(); render(); return; }
+  if(e.target.classList&&e.target.classList.contains('cb-c')) batchTotal();
+});
+document.addEventListener('input', function(e){
+  if(e.target.id==='l-amount'||e.target.id==='l-term') loanPreview();
+  if(e.target.id==='p-int') capPreview();
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+/* =====================================================================
+   INICIO
+   ===================================================================== */
+async function start(){
+  try{ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
+  if(PROD){
+    if(!sb){ showMsg('No se pudo cargar la librería de Supabase. Revisa tu conexión a internet y recarga la página.'); return; }
+    sb.auth.onAuthStateChange(function(ev){ if(ev==='SIGNED_OUT'){ ME=null; showOnly('login'); } });
+    var ses=(await sb.auth.getSession()).data.session;
+    if(!ses){ showOnly('login'); return; }
+    try{ await loadAll(); render(); }catch(e){ showMsg('No se pudieron cargar los datos: '+e.message); }
+    return;
+  }
+  await demoApi.init(); render();
+}
+start();
+})();
+</script>
+</body>
+</html>
