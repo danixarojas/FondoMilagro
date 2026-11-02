@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0d6a55">
-<title>Natillera Digital</title>
+<title>Fondo Milagro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -134,7 +134,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
@@ -170,7 +170,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <div class="wrap" id="msgBox" hidden><div class="card" style="max-width:520px;margin:48px auto"><h2>Atención</h2><p id="msgText"></p></div></div>
 
 <div class="wrap" id="appBox"><main id="view" tabindex="-1"></main></div>
-<footer class="foot">Natillera Digital · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
+<footer class="foot">Fondo Milagro · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
 <div id="modal" hidden></div>
 <div id="toast" hidden role="status"></div>
 
@@ -379,6 +379,13 @@ function hashUsed(h, except){
 }
 function logDemo(text){ S.log.unshift({t:new Date().toISOString(), who:ME?ME.name:'Sistema', text:text}); S.log=S.log.slice(0,80); }
 
+function memberBlockers(id){
+  var r=[], cs=S.contributions.filter(function(c){ return c.memberId===id; }), ls=S.loans.filter(function(l){ return l.memberId===id; });
+  if(cs.some(function(c){ return c.status==='aprobado'; })) r.push('tiene aportes aprobados');
+  if(cs.some(function(c){ return c.status==='revision'; })) r.push('tiene comprobantes en revisión');
+  if(ls.some(function(l){ return l.status!=='rechazado'; })) r.push('tiene préstamos solicitados, vigentes o pagados');
+  return r;
+}
 var demoApi={
   init:async function(){ S=loadDemo(); if(!S||!S.fund||!S.fund.reservePct&&S.fund.reservePct!==0) seedDemo(); setMe(); },
   reload:async function(){ saveDemo(); },
@@ -442,6 +449,33 @@ var demoApi={
   },
   saveSettings:async function(o){ Object.assign(S.fund,o); logDemo('Actualizó las reglas del fondo'); saveDemo(); },
   createFund:async function(){},
+  updateMember:async function(id, o){
+    var m=member(id);
+    if(!isAdmin()) throw new Error('Solo el administrador puede editar socios.');
+    if(!m) throw new Error('El socio no existe.');
+    if(S.fund.closed) throw new Error('El fondo ya está cerrado: no se pueden editar socios.');
+    if(m.role==='admin'&&o.role!=='admin'&&!S.members.some(function(x){ return x.role==='admin'&&x.id!==id; })) throw new Error('Debe quedar al menos un administrador.');
+    if(o.modality!==m.modality){
+      if(S.contributions.some(function(c){ return c.memberId===id&&c.status!=='pendiente'; })) throw new Error('Ya tiene aportes enviados: no se puede cambiar la modalidad de ahorro.');
+      S.contributions=S.contributions.filter(function(c){ return c.memberId!==id; });
+      m.modality=o.modality; S.contributions=S.contributions.concat(genContribs(m));
+    }
+    m.name=o.name; m.phone=o.phone; m.role=o.role;
+    logDemo('Editó al socio '+o.name); saveDemo();
+  },
+  removeMember:async function(id){
+    var m=member(id);
+    if(!isAdmin()) throw new Error('Solo el administrador puede eliminar socios.');
+    if(!m) throw new Error('El socio no existe.');
+    if(S.fund.closed) throw new Error('El fondo ya está cerrado: no se pueden eliminar socios.');
+    var b=memberBlockers(id); if(b.length) throw new Error('No se puede eliminar: '+b.join(' y ')+'.');
+    var loanIds=S.loans.filter(function(l){ return l.memberId===id; }).map(function(l){ return l.id; });
+    S.payments=S.payments.filter(function(p){ return loanIds.indexOf(p.loanId)<0; });
+    S.loans=S.loans.filter(function(l){ return l.memberId!==id; });
+    S.contributions=S.contributions.filter(function(c){ return c.memberId!==id; });
+    S.members=S.members.filter(function(x){ return x.id!==id; });
+    logDemo('Eliminó al socio '+m.name); saveDemo();
+  },
   deleteLoan:async function(id){
     var l=byId(S.loans,id);
     if(!isAdmin()) throw new Error('Solo el administrador puede eliminar préstamos.');
@@ -473,7 +507,7 @@ async function fetchAll(build){
   }
   return out;
 }
-var ACTION_TXT={eliminar_prestamo:'Eliminó un préstamo',cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
+var ACTION_TXT={editar_socio:'Editó un socio',eliminar_socio:'Eliminó un socio',eliminar_prestamo:'Eliminó un préstamo',cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
   registrar_prestamo:'Registró un préstamo',aprobar_prestamo:'Aprobó un préstamo',rechazar_prestamo:'Rechazó un préstamo',
   reportar_pago_prestamo:'Registró un pago de préstamo',aprobar_pago:'Aprobó un pago de préstamo',rechazar_pago:'Rechazó un pago de préstamo',cerrar_fondo:'Cerró el fondo'};
 
@@ -507,7 +541,7 @@ async function loadAll(){
   if(staff){
     var names={}; S.profiles.forEach(function(p){ names[p.id]=p.full_name; });
     var lg=must(await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(80));
-    S.log=lg.map(function(e){ var d=e.detail||{}; return {t:e.created_at,who:names[e.actor]||'—',text:(ACTION_TXT[e.action]||e.action)+(d.monto?' ('+fmt(d.monto)+')':'')}; });
+    S.log=lg.map(function(e){ var d=e.detail||{}; return {t:e.created_at,who:names[e.actor]||'—',text:(ACTION_TXT[e.action]||e.action)+(d.monto?' ('+fmt(d.monto)+')':'')+(d.socio?' ('+d.socio+')':'')}; });
     if(f.closed){ var sn=must(await sb.from('settlement_snapshots').select('rows').eq('fund_id',f.id).limit(1)); S.snapshot=sn.length?sn[0].rows:null; }
   } else if(f.closed){
     var my=must(await sb.rpc('my_settlement',{p_fund:f.id})); S.mine=my.length?my[0]:null;
@@ -555,6 +589,8 @@ var prodApi={
     must(await sb.from('funds').insert({name:o.name,start_date:o.startDate,months:o.months,monthly_amount:o.monthlyAmt,biweekly_amount:o.biweeklyAmt,loan_rate:o.rate}));
     await loadAll();
   },
+  updateMember:async function(id, o){ must(await sb.rpc('update_member',{p_member:id,p_name:o.name,p_phone:o.phone||null,p_role:o.role,p_mode:o.modality})); await loadAll(); },
+  removeMember:async function(id){ must(await sb.rpc('remove_member',{p_member:id})); await loadAll(); },
   deleteLoan:async function(id){ must(await sb.rpc('delete_loan',{p_id:id})); await loadAll(); },
   setMyName:async function(n){ must(await sb.rpc('set_my_name',{p_name:n})); await loadAll(); },
   closeFund:async function(){ must(await sb.rpc('close_fund',{p_fund:S.fund.id})); await loadAll(); },
@@ -798,10 +834,10 @@ function viewSocios(){
       pend.map(function(p){ return '<tr><td>'+esc(p.full_name)+'</td><td class="muted">'+esc(p.email)+'</td><td class="r">'+(admin?'<button class="btn sm" type="button" data-act="new-member" data-profile="'+p.id+'">Inscribir en el fondo</button>':'')+'</td></tr>'; }).join('')+
       '</tbody></table></div></div>';
   }
-  h+='<div class="card"><header><h2>Socios</h2>'+(admin?'<button class="btn" type="button" data-act="new-member">Agregar socio</button>':'')+'</header><div class="tablebox"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Modalidad</th><th class="r">Aporte</th><th class="r">Ahorrado</th></tr></thead><tbody>';
+  h+='<div class="card"><header><h2>Socios</h2>'+(admin?'<button class="btn" type="button" data-act="new-member">Agregar socio</button>':'')+'</header><div class="tablebox"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Modalidad</th><th class="r">Aporte</th><th class="r">Ahorrado</th>'+(admin?'<th class="no-print">Acciones</th>':'')+'</tr></thead><tbody>';
   S.members.forEach(function(m){
     var c=sum(S.contributions.filter(function(x){ return x.memberId===m.id&&x.status==='aprobado'; }), function(x){ return x.amount; });
-    h+='<tr><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(m.phone||'—')+'</td><td>'+(m.role==='socio'?'Socio':'<span class="pill good">'+ROLE_TXT[m.role]+'</span>')+'</td><td>'+(m.modality==='quincenal'?'Quincenal':'Mensual')+'</td><td class="r num">'+fmt(amountFor(m.modality))+'</td><td class="r num">'+fmt(c)+'</td></tr>';
+    h+='<tr><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(m.phone||'—')+'</td><td>'+(m.role==='socio'?'Socio':'<span class="pill good">'+ROLE_TXT[m.role]+'</span>')+'</td><td>'+(m.modality==='quincenal'?'Quincenal':'Mensual')+'</td><td class="r num">'+fmt(amountFor(m.modality))+'</td><td class="r num">'+fmt(c)+'</td>'+(admin&&!S.fund.closed?'<td class="no-print"><div class="actions"><button class="btn sm ghost" type="button" data-act="edit-member" data-id="'+m.id+'">Editar</button><button class="btn sm danger" type="button" data-act="remove-member" data-id="'+m.id+'">Eliminar</button></div></td>':(admin?'<td></td>':''))+'</tr>';
   });
   return h+'</tbody></table></div></div>';
 }
@@ -949,6 +985,28 @@ H['delete-loan']=function(d){
     '<div class="actions"><button class="btn danger" type="button" data-act="delete-loan-do" data-id="'+l.id+'">Sí, eliminar</button><button class="btn ghost" type="button" data-act="close">Cancelar</button></div>');
 };
 H['delete-loan-do']=function(d){ done(api.deleteLoan(d.id)); };
+H['edit-member']=function(d){
+  var m=member(d.id); if(!m) return;
+  var locked=S.contributions.some(function(c){ return c.memberId===m.id&&c.status!=='pendiente'; });
+  modal('Editar socio','<form data-form="edit-member" data-id="'+m.id+'" style="display:grid;gap:12px">'+
+    '<label>Nombre<input type="text" id="em-name" maxlength="60" value="'+esc(m.name)+'"></label>'+
+    '<label>Teléfono (para WhatsApp)<input type="text" id="em-phone" placeholder="3001234567" value="'+esc(m.phone||'')+'"></label>'+
+    '<label>Rol<select id="em-role"><option value="socio"'+(m.role==='socio'?' selected':'')+'>Socio</option><option value="veedor"'+(m.role==='veedor'?' selected':'')+'>Veedor (solo lectura de todo)</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>Administrador</option></select></label>'+
+    '<label>Modalidad de ahorro<select id="em-mod"'+(locked?' disabled':'')+'><option value="mensual"'+(m.modality==='mensual'?' selected':'')+'>Mensual ('+fmt(S.fund.monthlyAmt)+')</option><option value="quincenal"'+(m.modality==='quincenal'?' selected':'')+'>Quincenal ('+fmt(S.fund.biweeklyAmt)+')</option></select></label>'+
+    (locked?'<p class="muted sm" style="margin:0">La modalidad no se puede cambiar porque ya tiene aportes enviados.</p>':'<p class="muted sm" style="margin:0">Si cambias la modalidad, el calendario de cuotas se genera de nuevo (todas sus cuotas están pendientes).</p>')+
+    '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar cambios</button></form>');
+};
+H['remove-member']=function(d){
+  var m=member(d.id); if(!m) return;
+  if(ME&&m.id===ME.id){ ferr('No puedes eliminarte a ti mismo del fondo.'); return; }
+  var b=memberBlockers(m.id);
+  if(b.length){
+    modal('No se puede eliminar','<p style="margin:0"><b>'+esc(m.name)+'</b> '+b.join(' y ')+'. Eliminarlo borraría ese historial y descuadraría la caja.</p><p class="muted sm" style="margin:0">Solo se pueden eliminar socios sin movimientos (por ejemplo, alguien inscrito por error).</p><div class="actions"><button class="btn ghost" type="button" data-act="close">Entendido</button></div>');
+    return;
+  }
+  modal('Eliminar socio','<p style="margin:0">¿Eliminar a <b>'+esc(m.name)+'</b> del fondo? Se borran sus cuotas pendientes y su calendario.</p><p class="muted sm" style="margin:0">Su cuenta de acceso no se borra: puede volver a inscribirse después. Queda registrado en Actividad. No se puede deshacer.</p><p class="err" id="ferr" role="alert"></p><div class="actions"><button class="btn danger" type="button" data-act="remove-member-do" data-id="'+m.id+'">Sí, eliminar</button><button class="btn ghost" type="button" data-act="close">Cancelar</button></div>');
+};
+H['remove-member-do']=function(d){ done(api.removeMember(d.id)); };
 H['approve-loan']=function(d){ done(api.reviewLoan(d.id,true)); };
 H['reject-loan']=function(d){ done(api.reviewLoan(d.id,false)); };
 H['pay-loan']=function(d){
@@ -1044,6 +1102,12 @@ F['edit-name']=function(){
   var n=($('#nm').value||'').replace(/\s+/g,' ').trim();
   if(n.length<2||n.length>60) return ferr('El nombre debe tener entre 2 y 60 caracteres.');
   return api.setMyName(n).then(function(){ closeModal(); render(); }).catch(function(e){ ferr(e.message); });
+};
+F['edit-member']=function(f){
+  var o={name:($('#em-name').value||'').replace(/\s+/g,' ').trim(), phone:($('#em-phone').value||'').trim(), role:$('#em-role').value, modality:$('#em-mod').value};
+  if(o.name.length<2||o.name.length>60) return ferr('El nombre debe tener entre 2 y 60 caracteres.');
+  if(o.phone&&!/^[0-9+() -]{7,20}$/.test(o.phone)) return ferr('El teléfono no es válido. Usa solo números (por ejemplo 3001234567).');
+  return done(api.updateMember(f.dataset.id,o));
 };
 F['change-pass']=function(){
   var a=$('#np1').value, b=$('#np2').value;
