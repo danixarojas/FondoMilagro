@@ -12,4 +12,5 @@
 window.NATILLERA_CONFIG = {
   url: "https://fkowunwkbhsvyptbwqdm.supabase.co",
   anonKey: "sb_publishable_X-SrHMKsHdaHm4dY_H06Vg_Y4zHVbvu"
+  payment: { nequi: "3106976739", llave: "@3106976739", titular: "Johan Stiven Segura" }
 };
