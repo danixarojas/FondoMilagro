@@ -119,11 +119,20 @@ td.r,th.r{text-align:right}
 .printhead{display:none}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:20;max-width:90vw;font-size:14px}
 footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 32px}
+#tour{position:fixed;inset:0;z-index:12;pointer-events:none}
+.tour-back{position:absolute;inset:0;background:rgba(10,20,15,.38);pointer-events:auto}
+.tour-card{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(540px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.35);pointer-events:auto;z-index:16;display:grid;gap:8px}
+.tour-card small{color:var(--muted)}
+.tour-dots{display:flex;gap:5px;flex-wrap:wrap}
+.tour-dots i{width:8px;height:8px;border-radius:99px;background:var(--line)}
+.tour-dots i.on{background:var(--accent)}
+.tour-hl{position:relative;z-index:14;background:var(--surface);border-radius:8px;box-shadow:0 0 0 3px var(--accent)}
+.who.tour-hl{padding:6px 10px;border-radius:10px}
 @media (prefers-reduced-motion:no-preference){.bar>i{transition:width .4s}}
 @media (max-width:520px){.rowbar{grid-template-columns:90px 1fr 84px}}
 @media print{
   body{background:#fff;color:#000}
-  header.top,.notice,footer.foot,.no-print,#modal,#toast,.actions,.btn{display:none!important}
+  header.top,.notice,footer.foot,.no-print,#modal,#toast,#tour,.actions,.btn{display:none!important}
   .printhead{display:block;margin-bottom:12px}
   .card{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
   .wrap{max-width:none;padding:0}
@@ -134,15 +143,17 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
         <button class="btn sm ghost" type="button" data-act="edit-name">Mi nombre</button>
+        <button class="btn sm ghost" type="button" data-act="tour">Recorrido</button>
       </div>
       <div class="who" id="prodWho" hidden>
         <span id="meName"></span>
         <button class="btn sm ghost" type="button" data-act="edit-name">Mi nombre</button>
+        <button class="btn sm ghost" type="button" data-act="tour">Recorrido</button>
         <button class="btn sm ghost" type="button" data-act="change-pass">Cambiar contraseña</button>
         <button class="btn sm ghost" type="button" data-act="logout">Salir</button>
       </div>
@@ -157,7 +168,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 
 <div class="wrap" id="loginBox" hidden>
   <div class="card" style="max-width:420px;margin:48px auto">
-    <header><h2>Ingresar a la natillera</h2></header>
+    <header><h2>Ingresar al Fondo Milagro</h2></header>
     <form data-form="login" style="display:grid;gap:12px">
       <label class="sm muted">Correo<input type="email" id="lg-email" autocomplete="username"></label>
       <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
@@ -173,6 +184,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <footer class="foot">Fondo Milagro · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
 <div id="modal" hidden></div>
 <div id="toast" hidden role="status"></div>
+<div id="tour" hidden><div class="tour-back"></div><div class="tour-card" id="tourCard" role="dialog" aria-live="polite" aria-label="Recorrido guiado"></div></div>
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
@@ -406,22 +418,34 @@ var demoApi={
     if(ok&&waive) c.fee=0;
     logDemo((ok?'Aprobó':'Rechazó')+' la cuota '+c.n+' de '+mname(c.memberId)); saveDemo();
   },
-  requestLoan:async function(memberId, amount, term, reason){
-    var t=totals(), m=member(memberId), f=S.fund;
+  requestLoan:async function(memberId, amount, term, reason, desired){
+    var t=totals(), m=member(memberId), f=S.fund, d=(desired&&desired>todayISO())?desired:null;
     if(!isAdmin() && memberId!==ME.id) throw new Error('Socio no válido.');
     if(f.closed) throw new Error('El fondo ya está cerrado.');
     if(amount>f.maxLoanAmount) throw new Error('El valor máximo de un préstamo es '+fmt(f.maxLoanAmount)+' por socio.');
-    var busy=S.loans.filter(function(l){ return l.memberId===memberId&&(l.status==='solicitado'||l.status==='activo'); }).length;
-    if(busy>=f.maxActiveLoans) throw new Error(isAdmin()?'El socio ya tiene un préstamo vigente o en solicitud. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo vigente o en solicitud. Podrás pedir otro cuando pagues el actual.');
-    if(amount>t.lendable) throw new Error(isStaff()?'Supera lo disponible para prestar ('+fmt(t.lendable)+').':'En este momento el fondo no tiene disponibilidad para ese monto. Consulta con el administrador.');
-    S.loans.push({id:uid(),memberId:memberId,amount:amount,term:term,status:'solicitado',requestedAt:todayISO(),approvedAt:null,note:reason});
-    logDemo((isAdmin()?'Registró':'Solicitó')+' un préstamo de '+fmt(amount)+' ('+m.name+')'); saveDemo();
+    if(d&&d>fundEnd()) throw new Error('La fecha no puede ser posterior al cierre del fondo ('+fdate(fundEnd())+').');
+    var busy=S.loans.filter(function(l){ return l.memberId===memberId&&(l.status==='solicitado'||l.status==='programado'||l.status==='activo'); }).length;
+    if(busy>=f.maxActiveLoans) throw new Error(isAdmin()?'El socio ya tiene un préstamo en espera, programado o vigente. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo en espera, programado o vigente. Podrás pedir otro cuando pagues el actual.');
+    if(!d&&amount>t.lendable) throw new Error(isStaff()?'Supera lo disponible para prestar ('+fmt(t.lendable)+').':'En este momento el fondo no tiene disponibilidad para ese monto. Puedes solicitarlo para una fecha futura o consultar con el administrador.');
+    S.loans.push({id:uid(),memberId:memberId,amount:amount,term:term,status:'solicitado',requestedAt:todayISO(),approvedAt:null,note:reason,desiredDate:d,awaitingFunds:false});
+    logDemo((isAdmin()?'Registró':'Solicitó')+' un préstamo de '+fmt(amount)+' ('+m.name+')'+(d?' para el '+fdate(d):'')); saveDemo();
   },
   reviewLoan:async function(id, ok){
     var l=byId(S.loans,id), t=totals();
-    if(ok&&l.amount>t.lendable) throw new Error('Supera lo disponible para prestar ('+fmt(t.lendable)+').');
-    l.status=ok?'activo':'rechazado'; if(ok) l.approvedAt=todayISO();
-    logDemo((ok?'Aprobó':'Rechazó')+' el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)); saveDemo();
+    if(!ok){ l.status='rechazado'; l.awaitingFunds=false; logDemo('Rechazó el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)); saveDemo(); return; }
+    if(l.desiredDate&&l.desiredDate>todayISO()){ l.status='programado'; logDemo('Autorizó el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)+', programado para el '+fdate(l.desiredDate)); saveDemo(); return; }
+    if(l.amount>t.lendable) throw new Error('Supera lo disponible para prestar ('+fmt(t.lendable)+').');
+    l.status='activo'; l.approvedAt=todayISO(); l.awaitingFunds=false;
+    logDemo('Aprobó el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)); saveDemo();
+  },
+  disburseLoan:async function(id){
+    var l=byId(S.loans,id), t=totals();
+    if(!isAdmin()) throw new Error('Solo el administrador puede desembolsar.');
+    if(!l||l.status!=='programado') throw new Error('El préstamo no está programado.');
+    if(l.desiredDate>todayISO()) throw new Error('Aún no es la fecha de desembolso ('+fdate(l.desiredDate)+').');
+    if(l.amount>t.lendable){ l.awaitingFunds=true; saveDemo(); return {ok:false,available:t.lendable,needed:l.amount}; }
+    l.status='activo'; l.approvedAt=todayISO(); l.awaitingFunds=false;
+    logDemo('Desembolsó el préstamo de '+fmt(l.amount)+' a '+mname(l.memberId)); saveDemo(); return {ok:true};
   },
   submitPayment:async function(loanId, amount, ev, note){
     var ln=byId(S.loans,loanId);
@@ -498,7 +522,16 @@ var demoApi={
 /* =====================================================================
    CAPA DE DATOS · MODO REAL (Supabase)
    ===================================================================== */
-function must(r){ if(r.error) throw new Error(r.error.message||String(r.error)); return r.data; }
+var DB_FIXES={disburse_loan:'actualizacion_prestamos_programados.sql',refresh_loan_alerts:'actualizacion_prestamos_programados.sql',request_loan:'actualizacion_prestamos_programados.sql',set_my_name:'actualizacion_prestamos_y_nombre.sql',max_loan_amount:'actualizacion_prestamos_y_nombre.sql',delete_loan:'actualizacion_eliminar_prestamo.sql',update_member:'actualizacion_editar_socios.sql',remove_member:'actualizacion_editar_socios.sql'};
+function must(r){
+  if(r.error){
+    var m=String(r.error.message||r.error), k=Object.keys(DB_FIXES).filter(function(n){ return m.indexOf(n)>=0; })[0];
+    if(k && (r.error.code==='PGRST202'||/could not find|schema cache|does not exist/i.test(m)))
+      throw new Error('Falta actualizar la base de datos: en Supabase, SQL Editor, ejecuta el script '+DB_FIXES[k]+' y vuelve a intentar.');
+    throw new Error(m);
+  }
+  return r.data;
+}
 async function fetchAll(build){
   var out=[], from=0, step=1000;
   for(;;){
@@ -507,7 +540,7 @@ async function fetchAll(build){
   }
   return out;
 }
-var ACTION_TXT={editar_socio:'Editó un socio',eliminar_socio:'Eliminó un socio',eliminar_prestamo:'Eliminó un préstamo',cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
+var ACTION_TXT={programar_prestamo:'Autorizó un préstamo programado',desembolsar_prestamo:'Desembolsó un préstamo programado',editar_socio:'Editó un socio',eliminar_socio:'Eliminó un socio',eliminar_prestamo:'Eliminó un préstamo',cambiar_nombre:'Cambió su nombre',subir_comprobante_aporte:'Subió comprobante de aporte',aprobar_aporte:'Aprobó un aporte',rechazar_aporte:'Rechazó un aporte',
   registrar_prestamo:'Registró un préstamo',aprobar_prestamo:'Aprobó un préstamo',rechazar_prestamo:'Rechazó un préstamo',
   reportar_pago_prestamo:'Registró un pago de préstamo',aprobar_pago:'Aprobó un pago de préstamo',rechazar_pago:'Rechazó un pago de préstamo',cerrar_fondo:'Cerró el fondo'};
 
@@ -533,8 +566,9 @@ async function loadAll(){
   S.contributions=cs.map(function(c){ return {id:c.id,memberId:c.fund_member_id,n:c.n,due:c.due_date,amount:c.amount,fee:c.fee||0,status:c.status,
     evidence:c.evidence_path?{path:c.evidence_path,name:c.evidence_path.split('/').pop(),type:/\.pdf$/i.test(c.evidence_path)?'application/pdf':'image/jpeg'}:null,
     note:c.member_note||'',adminNote:c.admin_note||'',paidAt:c.paid_at}; });
+  if(prof.role==='admin'){ try{ await sb.rpc('refresh_loan_alerts',{p_fund:f.id}); }catch(e){} }
   var ls=must(await sb.from('loans').select('*').order('requested_at',{ascending:false}));
-  S.loans=ls.map(function(l){ return {id:l.id,memberId:l.fund_member_id,amount:l.amount,term:l.term_months,status:l.status,requestedAt:(l.requested_at||'').slice(0,10),approvedAt:l.approved_at?l.approved_at.slice(0,10):null,note:l.reason||''}; });
+  S.loans=ls.map(function(l){ return {id:l.id,memberId:l.fund_member_id,amount:l.amount,term:l.term_months,status:l.status,requestedAt:(l.requested_at||'').slice(0,10),approvedAt:l.approved_at?l.approved_at.slice(0,10):null,note:l.reason||'',desiredDate:l.desired_date||null,awaitingFunds:!!l.awaiting_funds}; });
   var ps=await fetchAll(function(){ return sb.from('loan_payments').select('*').order('paid_at'); });
   S.payments=ps.map(function(p){ return {id:p.id,loanId:p.loan_id,date:(p.paid_at||'').slice(0,10),amount:p.amount,interest:p.interest,capital:p.capital,status:p.status,
     evidence:p.evidence_path?{path:p.evidence_path,name:p.evidence_path.split('/').pop(),type:/\.pdf$/i.test(p.evidence_path)?'application/pdf':'image/jpeg'}:null,note:p.admin_note||''}; });
@@ -564,10 +598,11 @@ var prodApi={
   reviewContrib:async function(id, ok, note, waive){
     must(await sb.rpc('review_contribution',{p_id:id,p_approve:ok,p_note:note||null,p_waive_fee:!!waive})); await loadAll();
   },
-  requestLoan:async function(memberId, amount, term, reason){
-    must(await sb.rpc('request_loan',{p_fund_member:memberId,p_amount:amount,p_term:term,p_reason:reason||null})); await loadAll();
+  requestLoan:async function(memberId, amount, term, reason, desired){
+    must(await sb.rpc('request_loan',{p_fund_member:memberId,p_amount:amount,p_term:term,p_reason:reason||null,p_desired:desired||null})); await loadAll();
   },
   reviewLoan:async function(id, ok){ must(await sb.rpc('review_loan',{p_id:id,p_approve:ok})); await loadAll(); },
+  disburseLoan:async function(id){ var r=must(await sb.rpc('disburse_loan',{p_id:id})); await loadAll(); return r; },
   submitPayment:async function(loanId, amount, ev, note){
     var path=await uploadEvidence(ev,'pago');
     must(await sb.rpc('submit_loan_payment',{p_loan:loanId,p_amount:amount,p_path:path,p_note:note||null,p_hash:ev.hash})); await loadAll();
@@ -612,7 +647,7 @@ function setMe(){
    PIEZAS DE INTERFAZ
    ===================================================================== */
 var PILL={pendiente:['Pendiente',''],revision:['En revisión','warn'],aprobado:['Aprobado','good'],rechazado:['Rechazado','bad'],mora:['En mora','bad'],
-  activo:['Activo','good'],solicitado:['Solicitado','warn'],pagado:['Pagado',''],vencido:['Vencido','bad']};
+  activo:['Activo','good'],solicitado:['En espera','warn'],programado:['Programado','warn'],sinfondos:['Sin fondos a la fecha','bad'],pagado:['Pagado',''],vencido:['Vencido','bad']};
 function pill(k){ var p=PILL[k]||[k,'']; return '<span class="pill '+p[1]+'">'+p[0]+'</span>'; }
 function cPill(c){ return pill(c.status==='pendiente'&&isLate(c)?'mora':c.status); }
 var ROLE_TXT={admin:'Administrador',veedor:'Veedor',socio:'Socio'};
@@ -694,7 +729,7 @@ function monthChart(){
 function viewResumen(){
   var f=S.fund, h='';
   if(isStaff()){
-    var t=totals(), pend=pendingReview(), loansReq=S.loans.filter(function(l){ return l.status==='solicitado'; }).length, rows=settlement();
+    var t=totals(), pend=pendingReview(), loansReq=loanActionCount(), rows=settlement();
     var maxC=Math.max.apply(null, rows.map(function(r){ return r.c; }).concat([1]));
     if(f.closed) h+=lockNote('<b>Fondo cerrado</b> el '+fdate(f.closedAt)+'. Ya no se registran aportes ni préstamos.');
     h+='<div class="grid g4">'+
@@ -706,7 +741,7 @@ function viewResumen(){
     h+='<div class="grid g2">';
     if(ME.id) h+=myCard();
     h+=isAdmin()?
-      '<div class="card"><header><h2>Por revisar</h2></header><div class="stats"><div><small>Comprobantes de aportes</small><b>'+S.contributions.filter(function(c){return c.status==='revision';}).length+'</b></div><div><small>Pagos de préstamos</small><b>'+S.payments.filter(function(p){return p.status==='revision';}).length+'</b></div><div><small>Préstamos por aprobar</small><b>'+loansReq+'</b></div></div><p class="muted sm" style="margin:12px 0 0">'+(pend+loansReq?'Revisa las pestañas Aportes y Préstamos.':'No hay pendientes.')+'</p></div>':
+      '<div class="card"><header><h2>Por revisar</h2></header><div class="stats"><div><small>Comprobantes de aportes</small><b>'+S.contributions.filter(function(c){return c.status==='revision';}).length+'</b></div><div><small>Pagos de préstamos</small><b>'+S.payments.filter(function(p){return p.status==='revision';}).length+'</b></div><div><small>Préstamos por autorizar o desembolsar</small><b>'+loansReq+'</b></div></div><p class="muted sm" style="margin:12px 0 0">'+(pend+loansReq?'Revisa las pestañas Aportes y Préstamos.':'No hay pendientes.')+'</p></div>':
       '<div class="card"><header><h2>Rol de veedor</h2></header><p class="sm muted" style="margin:0">Puedes ver todo el fondo, los comprobantes y la actividad. No puedes aprobar ni modificar nada.</p></div>';
     h+='</div>'+monthChart();
     h+='<div class="card"><header><h2>Ahorro por socio</h2><span class="muted sm">Participación sobre el total aprobado</span></header>';
@@ -752,7 +787,7 @@ function viewAportes(){
 function loanLimitNote(){
   var f=S.fund;
   return 'Puedes solicitar hasta '+fmt(f.maxLoanAmount)+' por préstamo, aunque no tengas ahorrado ese valor.'+
-    (f.maxActiveLoans===1?' No podrás pedir otro préstamo hasta que pagues el actual por completo.':'');
+    (f.maxActiveLoans===1?' No podrás pedir otro préstamo hasta que pagues el actual por completo.':'')+' Si lo necesitas más adelante, elige la fecha: queda en espera de autorización y se programa para ese día.';
 }
 function viewPrestamos(){
   var admin=isAdmin(), staff=isStaff(), t=staff?totals():null, closed=S.fund.closed;
@@ -769,10 +804,22 @@ function viewPrestamos(){
   if(!loans.length) h+='<div class="card empty">'+(staff?'Aún no hay préstamos.':'Aún no tienes préstamos.')+'</div>';
   loans.forEach(function(l){
     var bal=loanBalance(l), pays=paymentsOf(l.id).slice().sort(function(a,b){ return a.date<b.date?1:-1; }), act='';
-    if(admin && l.status==='solicitado') act+='<button class="btn sm" type="button" data-act="approve-loan" data-id="'+l.id+'">Aprobar y desembolsar</button><button class="btn sm danger" type="button" data-act="reject-loan" data-id="'+l.id+'">Rechazar</button>';
+    var future=l.desiredDate&&l.desiredDate>todayISO();
+    if(admin && l.status==='solicitado') act+='<button class="btn sm" type="button" data-act="approve-loan" data-id="'+l.id+'">'+(future?'Autorizar y programar':'Aprobar y desembolsar')+'</button><button class="btn sm danger" type="button" data-act="reject-loan" data-id="'+l.id+'">Rechazar</button>';
+    if(admin && l.status==='programado') act+=(future?'<span class="muted sm" style="align-self:center">Se podrá desembolsar desde el '+fdate(l.desiredDate)+'</span>':'<button class="btn sm" type="button" data-act="disburse-loan" data-id="'+l.id+'">Desembolsar</button>')+'<button class="btn sm danger" type="button" data-act="reject-loan" data-id="'+l.id+'">Cancelar</button>';
     if(l.status==='activo' && (admin||l.memberId===ME.id)) act+='<button class="btn sm" type="button" data-act="pay-loan" data-id="'+l.id+'">'+(admin?'Registrar pago':'Registrar pago o abono')+'</button>';
     if(admin && !closed && !pays.some(function(p){ return p.status==='aprobado'; })) act+='<button class="btn sm danger" type="button" data-act="delete-loan" data-id="'+l.id+'">Eliminar</button>';
-    h+='<div class="card loan"><div class="loan-top"><div><h3>'+(staff?esc(mname(l.memberId))+' · ':'')+fmt(l.amount)+'</h3><span class="muted sm">'+(staff?'Registrado ':'Solicitado ')+fdate(l.requestedAt)+(l.approvedAt?' · desembolsado '+fdate(l.approvedAt):'')+' · plazo '+l.term+' mes(es)'+(l.note?' · '+esc(l.note):'')+'</span></div><div class="actions">'+pill(l.status)+(loanOverdue(l)?pill('vencido'):'')+'</div></div>';
+    h+='<div class="card loan"><div class="loan-top"><div><h3>'+(staff?esc(mname(l.memberId))+' · ':'')+fmt(l.amount)+'</h3><span class="muted sm">'+(staff?'Registrado ':'Solicitado ')+fdate(l.requestedAt)+(l.approvedAt?' · desembolsado '+fdate(l.approvedAt):'')+' · plazo '+l.term+' mes(es)'+(l.note?' · '+esc(l.note):'')+'</span></div><div class="actions">'+pill(l.status)+(l.status==='programado'&&l.awaitingFunds&&staff?pill('sinfondos'):'')+(loanOverdue(l)?pill('vencido'):'')+'</div></div>';
+    if(l.status==='solicitado'||l.status==='programado'){
+      h+='<p class="sm" style="margin:0">'+(l.desiredDate?'Fecha solicitada: <b>'+fdate(l.desiredDate)+'</b>':'Sin fecha específica: se desembolsa apenas se autorice')+'</p>';
+      if(!staff&&l.status==='solicitado') h+='<p class="muted sm" style="margin:0">En espera de autorización del administrador.</p>';
+      if(!staff&&l.status==='programado') h+='<p class="muted sm" style="margin:0">Autorizado: se desembolsará a partir del '+fdate(l.desiredDate)+'.</p>';
+      if(l.status==='programado'&&l.awaitingFunds) h+=staff?'<p class="lock" style="margin:0">Llegó la fecha y hoy <b>no hay fondos suficientes</b> para este préstamo (disponible '+fmt(totals().lendable)+'). Se desembolsará cuando haya dinero.</p>':'<p class="lock" style="margin:0">Llegó la fecha de tu préstamo y el fondo aún no tiene disponibilidad. El administrador te avisará cuando pueda desembolsarlo.</p>';
+      if(staff&&l.desiredDate&&l.desiredDate>todayISO()){
+        var pr=projectedLendable(l), enough=pr>=l.amount;
+        h+='<p class="sm" style="margin:0"><span class="pill '+(enough?'good':'bad')+'">'+(enough?'Fondos estimados suficientes':'Fondos estimados insuficientes')+'</span> A esa fecha se estiman <b class="num">'+fmt(pr)+'</b> disponibles (si todos pagan sus cuotas y descontando otros préstamos programados). Es una estimación.</p>';
+      }
+    }
     if(l.status==='activo'||l.status==='pagado') h+='<div class="stats"><div><small>Saldo de capital</small><b>'+fmt(bal)+'</b></div><div><small>Interés del próximo mes</small><b>'+fmt(bal*S.fund.rate)+'</b></div><div><small>Intereses pagados</small><b>'+fmt(sum(pays.filter(function(p){return p.status==='aprobado';}),function(p){return p.interest;}))+'</b></div></div>';
     if(pays.length){
       h+='<div class="tablebox"><table><thead><tr><th>Fecha</th><th class="r">Pagado</th><th class="r">Interés</th><th class="r">Capital</th><th>Estado</th><th>Comprobante</th><th></th></tr></thead><tbody>';
@@ -880,23 +927,105 @@ function viewNoFund(){
 /* =====================================================================
    RENDER
    ===================================================================== */
-function render(){
-  if(!ME){ return; }
+function visibleTabs(){
   var staff=isStaff(), admin=isAdmin();
-  $('#fundName').textContent=S.fund?S.fund.name:'Natillera Digital';
-  $('#fundSub').textContent=S.fund?('Fondo de '+S.fund.months+' meses · '+ROLE_TXT[ME.role]+(S.fund.closed?' · cerrado':'')):ROLE_TXT[ME.role];
-  $('#demoWho').hidden=PROD; $('#prodWho').hidden=!PROD; $('#meName').textContent=ME.name+' · '+ROLE_TXT[ME.role];
-  if(!PROD) $('#userSel').innerHTML=S.members.map(function(m){ return '<option value="'+m.id+'"'+(m.id===ui.userId?' selected':'')+'>'+esc(m.name)+' ('+ROLE_TXT[m.role].toLowerCase()+')</option>'; }).join('');
-  if(!S.fund){ $('#tabs').innerHTML=''; $('#view').innerHTML=viewNoFund(); Array.prototype.forEach.call(document.querySelectorAll('#view form'), function(fm){ fm.noValidate=true; }); showOnly('app'); return; }
   var tabs=[['resumen','Resumen'],['aportes',staff?'Aportes':'Mis aportes'],['prestamos',staff?'Préstamos':'Mis préstamos']];
   if(staff) tabs.push(['liquidacion','Liquidación']);
   tabs.push(['estado','Estado de cuenta']);
   if(staff) tabs.push(['socios','Socios']);
   if(admin) tabs.push(['ajustes','Reglas']);
   if(staff) tabs.push(['actividad','Actividad']);
+  return tabs;
+}
+
+/* ---------- Recorrido guiado de primer ingreso ---------- */
+var tour={active:false,i:0,steps:[]};
+function tourKey(){ return 'natillera_tour_v1_'+(PROD?ME.profileId:ME.id); }
+function tourSeen(){ try{ return !!localStorage.getItem(tourKey())||!!localStorage.getItem('natillera_tour_off'); }catch(e){ return false; } }
+function tourMarkSeen(){ try{ localStorage.setItem(tourKey(),'1'); }catch(e){} }
+function tourText(key){
+  var f=S.fund, admin=isAdmin(), staff=isStaff();
+  var T={
+    resumen: staff
+      ? 'Aquí ves el panorama del fondo: cuánto hay <b>disponible para prestar</b>, el total ahorrado, lo prestado y las ganancias. Más abajo, el avance en el tiempo, los aportes aprobados por mes y el ahorro de cada socio.'+(admin?' La tarjeta <b>Por revisar</b> te dice cuántos comprobantes y préstamos esperan tu respuesta.':' Como <b>veedor</b> puedes mirarlo todo, pero no aprobar ni modificar nada.')
+      : 'Aquí ves el avance del fondo y <b>tu situación</b>: cuánto has aportado, si estás al día y cuál es tu próxima cuota. Desde esta tarjeta puedes <b>subir tu comprobante</b> o <b>solicitar un préstamo</b>.',
+    aportes: admin
+      ? 'Todas las cuotas de todos los socios. Filtra por socio o por estado. Cuando alguien sube un comprobante aparece <b>En revisión</b>: ábrelo con <b>Ver</b> y luego <b>Aprueba</b> o <b>Rechaza</b> (con motivo). A quien está en mora puedes mandarle un recordatorio por WhatsApp.'
+      : staff ? 'Todas las cuotas y sus comprobantes, en modo lectura.'
+      : 'Tu calendario de cuotas con su estado: pendiente, en revisión, aprobado o rechazado. Pulsa <b>Subir comprobante</b>, adjunta la foto de tu consignación y envíala. Puedes pagar <b>varias cuotas con una sola foto</b>. El administrador la revisa y la aprueba.'+(f.lateFee>0?' Si pagas con más de '+f.graceDays+' días de atraso hay una multa de '+fmt(f.lateFee)+' por cuota.':''),
+    prestamos: admin
+      ? 'Aquí autorizas préstamos y revisas los pagos que llegan. Los pedidos con <b>fecha futura</b> quedan <b>En espera</b>: al autorizarlos pasan a <b>Programado</b> y desde esa fecha los <b>desembolsas</b>; si ese día no hay fondos, la página te lo avisa. Puedes eliminar préstamos que no tengan pagos aprobados.'
+      : staff ? 'Todos los préstamos, sus pagos y las fechas programadas, en modo lectura.'
+      : 'Aquí <b>solicitas un préstamo</b> (hasta '+fmt(f.maxLoanAmount)+', aunque no tengas ese ahorro). Si lo necesitas para otro día, elige la fecha: queda <b>en espera</b> hasta que el administrador lo autorice. Con un préstamo activo, usa <b>Registrar pago o abono</b> y sube el comprobante. No puedes tener dos a la vez.',
+    liquidacion: 'Lo que recibirá cada socio al cierre del fondo: su ahorro más su parte de las ganancias, menos préstamos pendientes.'+(admin?' Al terminar los '+f.months+' meses, el administrador cierra el fondo y queda un acta que se puede imprimir.':''),
+    estado: staff ? 'El estado de cuenta de cualquier socio: ahorro aprobado, lo que debía a hoy y multas. Se puede <b>imprimir o guardar en PDF</b>.'
+                  : 'Tu estado de cuenta: ahorro aprobado, lo que debías pagar a hoy y tus multas. Puedes <b>imprimirlo o guardarlo en PDF</b>.',
+    socios: admin ? 'La lista de socios. Aquí los <b>agregas</b>, los <b>editas</b> (nombre, teléfono, rol, modalidad) o <b>eliminas</b> a quien no tenga movimientos.' : 'La lista de socios del fondo.',
+    ajustes: 'Las reglas del fondo: interés de los préstamos, valor máximo por préstamo, multa por mora, reserva de caja y forma de repartir las ganancias.',
+    actividad: 'La bitácora: quién hizo qué y cuándo. Sirve para dar transparencia al grupo.'
+  };
+  return T[key]||'';
+}
+function tourSteps(){
+  var steps=[{tab:null, title:'¡Bienvenido a la natillera, '+ME.name.split(' ')[0]+'!', text:'Te mostramos en un minuto qué puedes ver y hacer en cada apartado. Tu rol es <b>'+ROLE_TXT[ME.role].toLowerCase()+'</b>. Puedes saltar el recorrido cuando quieras y volver a verlo con el botón <b>Recorrido</b>.'}];
+  visibleTabs().forEach(function(t){ steps.push({tab:t[0], title:t[1], text:tourText(t[0])}); });
+  steps.push({tab:null, hl:'who', title:'Tu cuenta', text:PROD
+    ? 'Arriba a la derecha: <b>Mi nombre</b> para cambiar el nombre que se muestra, <b>Cambiar contraseña</b> y <b>Salir</b>. Con <b>Recorrido</b> vuelves a ver esta guía.'
+    : 'Arriba a la derecha: <b>Ver como</b> (solo en esta demostración) cambia de usuario, y <b>Mi nombre</b> cambia el nombre que se muestra. Con <b>Recorrido</b> vuelves a ver esta guía.'});
+  return steps;
+}
+function startTour(){
+  if(!ME||!S.fund) return;
+  tour.steps=tourSteps(); tour.i=0; tour.active=true; ui.tab='resumen'; render();
+}
+function maybeTour(){ if(ME&&S.fund&&!tour.active&&!tourSeen()) startTour(); }
+function endTour(){ tour.active=false; tourMarkSeen(); ui.tab='resumen'; render(); }
+function tourApply(){
+  var box=$('#tour'), card=$('#tourCard');
+  Array.prototype.forEach.call(document.querySelectorAll('.tour-hl'), function(e){ e.classList.remove('tour-hl'); });
+  if(!tour.active){ box.hidden=true; return; }
+  var st=tour.steps[tour.i], last=tour.i===tour.steps.length-1;
+  var el=null;
+  if(st.tab){ el=document.querySelector('#tabs [data-tab="'+st.tab+'"]'); }
+  else if(st.hl==='who'){ el=PROD?$('#prodWho'):$('#demoWho'); }
+  if(el){ el.classList.add('tour-hl'); try{ el.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} }
+  card.innerHTML='<small>Paso '+(tour.i+1)+' de '+tour.steps.length+'</small><h3>'+esc(st.title)+'</h3><p style="margin:0">'+st.text+'</p>'+
+    '<div class="tour-dots" aria-hidden="true">'+tour.steps.map(function(_,k){ return '<i class="'+(k===tour.i?'on':'')+'"></i>'; }).join('')+'</div>'+
+    '<div class="actions" style="justify-content:space-between;align-items:center"><button class="btn sm ghost" type="button" data-act="tour-skip">'+(last?'Cerrar':'Saltar recorrido')+'</button><span class="actions">'+(tour.i>0?'<button class="btn sm ghost" type="button" data-act="tour-prev">Atrás</button>':'')+'<button class="btn sm" type="button" data-act="tour-next">'+(last?'Empezar':'Siguiente')+'</button></span></div>';
+  box.hidden=false;
+}
+function refreshAlertsDemo(){
+  if(PROD||!S.fund) return;
+  var today=todayISO(), av=totals().lendable;
+  S.loans.forEach(function(l){ if(l.status!=='programado'||!l.desiredDate||l.desiredDate>today) l.awaitingFunds=false; });
+  S.loans.filter(function(l){ return l.status==='programado'&&l.desiredDate&&l.desiredDate<=today; })
+    .sort(function(a,b){ return a.desiredDate<b.desiredDate?-1:a.desiredDate>b.desiredDate?1:(a.requestedAt<b.requestedAt?-1:1); })
+    .forEach(function(l){ if(l.amount>av) l.awaitingFunds=true; else { l.awaitingFunds=false; av-=l.amount; } });
+}
+function projectedLendable(l){
+  var d=l.desiredDate, t=totals(), f=S.fund;
+  var exp=sum(S.contributions.filter(function(c){ return c.status!=='aprobado'&&c.due<=d; }), function(c){ return c.amount; });
+  var reserve=Math.round(f.reservePct*(t.contrib+exp));
+  var other=sum(S.loans.filter(function(x){ return x.id!==l.id&&x.status==='programado'&&x.desiredDate&&(x.desiredDate<d||(x.desiredDate===d&&x.requestedAt<l.requestedAt)); }), function(x){ return x.amount; });
+  return Math.max(0, t.cash+exp-reserve-other);
+}
+function loanActionCount(){
+  var today=todayISO();
+  return S.loans.filter(function(l){ return l.status==='solicitado'||(l.status==='programado'&&l.desiredDate&&l.desiredDate<=today); }).length;
+}
+function render(){
+  if(!ME){ return; }
+  refreshAlertsDemo();
+  var staff=isStaff(), admin=isAdmin();
+  $('#fundName').textContent=S.fund?S.fund.name:'Natillera Digital';
+  $('#fundSub').textContent=S.fund?('Fondo de '+S.fund.months+' meses · '+ROLE_TXT[ME.role]+(S.fund.closed?' · cerrado':'')):ROLE_TXT[ME.role];
+  $('#demoWho').hidden=PROD; $('#prodWho').hidden=!PROD; $('#meName').textContent=ME.name+' · '+ROLE_TXT[ME.role];
+  if(!PROD) $('#userSel').innerHTML=S.members.map(function(m){ return '<option value="'+m.id+'"'+(m.id===ui.userId?' selected':'')+'>'+esc(m.name)+' ('+ROLE_TXT[m.role].toLowerCase()+')</option>'; }).join('');
+  if(!S.fund){ tour.active=false; $('#tour').hidden=true; $('#tabs').innerHTML=''; $('#view').innerHTML=viewNoFund(); Array.prototype.forEach.call(document.querySelectorAll('#view form'), function(fm){ fm.noValidate=true; }); showOnly('app'); return; }
+  var tabs=visibleTabs();
   if(!tabs.some(function(t){ return t[0]===ui.tab; })) ui.tab='resumen';
   var pc=S.contributions.filter(function(c){ return c.status==='revision'; }).length;
-  var pl=S.payments.filter(function(p){ return p.status==='revision'; }).length+S.loans.filter(function(l){ return l.status==='solicitado'; }).length;
+  var pl=S.payments.filter(function(p){ return p.status==='revision'; }).length+loanActionCount();
   $('#tabs').innerHTML=tabs.map(function(t){
     var b=''; if(admin&&t[0]==='aportes'&&pc) b='<span class="badge">'+pc+'</span>'; if(admin&&t[0]==='prestamos'&&pl) b='<span class="badge">'+pl+'</span>'; if(admin&&t[0]==='socios'&&pendingProfiles().length) b='<span class="badge">'+pendingProfiles().length+'</span>';
     return '<button type="button" data-act="tab" data-tab="'+t[0]+'"'+(ui.tab===t[0]?' aria-current="page"':'')+'>'+t[1]+b+'</button>';
@@ -905,6 +1034,7 @@ function render(){
   $('#view').innerHTML=v();
   Array.prototype.forEach.call(document.querySelectorAll('#view form'), function(fm){ fm.noValidate=true; });
   showOnly('app');
+  tourApply();
 }
 
 /* =====================================================================
@@ -914,8 +1044,15 @@ function done(p){ return p.then(function(){ closeModal(); render(); }).catch(fun
 var H={};
 H.tab=function(d){ ui.tab=d.tab; render(); };
 H.close=closeModal;
+H.tour=function(){ closeModal(); startTour(); };
+H['tour-next']=function(){ if(tour.i>=tour.steps.length-1){ endTour(); return; } tour.i++; var st=tour.steps[tour.i]; if(st.tab) ui.tab=st.tab; render(); };
+H['tour-prev']=function(){ if(tour.i>0){ tour.i--; var st=tour.steps[tour.i]; if(st.tab) ui.tab=st.tab; else ui.tab='resumen'; render(); } };
+H['tour-skip']=function(){ endTour(); };
 H.reset=function(){ demoApi.reset().then(function(){ ui.tab='resumen'; render(); }); };
 H.print=function(){ try{ window.print(); }catch(e){ ferr('Tu navegador no permite imprimir desde aquí.'); } };
+H['edit-name']=function(){
+  modal('Mi nombre','<form data-form="edit-name" style="display:grid;gap:12px"><label>Nombre que verán el administrador y el grupo<input type="text" id="nm" maxlength="60" value="'+esc(ME.name)+'" autocomplete="name"></label><p class="muted sm" style="margin:0">Usa tu nombre y apellido para que el administrador te reconozca. Entre 2 y 60 caracteres.</p><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar nombre</button></form>');
+};
 H.logout=function(){ sb.auth.signOut().then(function(){ ME=null; showOnly('login'); }); };
 H['change-pass']=function(){
   modal('Cambiar contraseña','<form data-form="change-pass" style="display:grid;gap:12px"><label>Nueva contraseña (mínimo 8 caracteres)<input type="password" id="np1" autocomplete="new-password"></label><label>Repítela<input type="password" id="np2" autocomplete="new-password"></label><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Guardar</button></form>');
@@ -973,6 +1110,8 @@ H['new-loan']=function(){
   modal(admin?'Registrar préstamo':'Solicitar préstamo','<form data-form="new-loan" style="display:grid;gap:12px">'+sel+
     '<label>Monto (COP)<input type="number" id="l-amount" value="100000"></label>'+
     '<label>Plazo (meses)<input type="number" id="l-term" min="1" max="12" value="2"></label>'+
+    '<label>¿Para qué fecha lo necesitas? (opcional)<input type="date" id="l-date" min="'+iso(addDays(new Date(),1))+'" max="'+fundEnd()+'"></label>'+
+    '<p class="muted sm" style="margin:0" id="l-datehelp">Déjala vacía si lo necesitas ya. Si eliges una fecha futura, tu solicitud queda <b>en espera de autorización</b> y se programa para ese día: no hace falta que hoy haya ese dinero en el fondo.</p>'+
     '<label>Motivo<input type="text" id="l-note" placeholder="Ej. Gastos de matrícula"></label>'+
     '<div class="preview" id="l-prev"></div><p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">'+(admin?'Registrar solicitud':'Enviar solicitud')+'</button></form>');
   loanPreview();
@@ -1008,6 +1147,12 @@ H['remove-member']=function(d){
 };
 H['remove-member-do']=function(d){ done(api.removeMember(d.id)); };
 H['approve-loan']=function(d){ done(api.reviewLoan(d.id,true)); };
+H['disburse-loan']=function(d){
+  api.disburseLoan(d.id).then(function(r){
+    render();
+    if(!r.ok) modal('No hay fondos suficientes','<p style="margin:0">Hoy hay <b class="num">'+fmt(r.available)+'</b> disponibles para prestar y el préstamo es de <b class="num">'+fmt(r.needed)+'</b>.</p><p class="muted sm" style="margin:0">Queda marcado como "sin fondos a la fecha" y el socio verá un aviso. Cuando entren más aportes, vuelve a pulsar <b>Desembolsar</b>.</p><div class="actions"><button class="btn ghost" type="button" data-act="close">Entendido</button></div>');
+  }).catch(function(e){ ferr(e.message); });
+};
 H['reject-loan']=function(d){ done(api.reviewLoan(d.id,false)); };
 H['pay-loan']=function(d){
   var l=byId(S.loans,d.id), bal=loanBalance(l), intr=Math.round(bal*S.fund.rate);
@@ -1070,6 +1215,8 @@ H.copycsv=function(){
 };
 H['close-fund']=function(){
   var pend=pendingReview(), act=S.loans.filter(function(l){ return l.status==='activo'; }).length;
+  var wait=S.loans.filter(function(l){ return l.status==='solicitado'||l.status==='programado'; }).length;
+  if(wait){ modal('Antes de cerrar','<p style="margin:0">Hay <b>'+wait+'</b> préstamo(s) en espera o programados. Autorízalos, recházalos o elimínalos antes de cerrar el fondo.</p>'); return; }
   if(pend){ modal('Antes de cerrar','<p style="margin:0">Hay <b>'+pend+'</b> comprobante(s) por revisar. Apruébalos o recházalos antes de cerrar el fondo.</p>'); return; }
   modal('Cerrar el fondo','<p style="margin:0">Al cerrar, la liquidación queda <b>congelada</b> como acta y ya no se podrán registrar aportes ni préstamos. <b>No se puede deshacer.</b></p>'+(act?'<p class="lock" style="margin:0">Hay '+act+' préstamo(s) activo(s): su saldo se descontará a cada socio en la liquidación.</p>':'')+'<p class="err" id="ferr" role="alert"></p><button class="btn" type="button" data-act="close-fund-do">Sí, cerrar el fondo</button>');
 };
@@ -1096,7 +1243,7 @@ F.login=function(){
   return sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
     if(r.error) throw r.error;
     return loadAll();
-  }).then(function(){ $('#lg-pass').value=''; render(); }).catch(function(e){ ferr(loginError(e)); });
+  }).then(function(){ $('#lg-pass').value=''; render(); maybeTour(); }).catch(function(e){ ferr(loginError(e)); });
 };
 F['edit-name']=function(){
   var n=($('#nm').value||'').replace(/\s+/g,' ').trim();
@@ -1130,9 +1277,12 @@ F['new-loan']=function(){
   if(!(a>=10000)) return ferr('Ingresa un monto de al menos $10.000.');
   if(!(n>=1)) return ferr('El plazo debe ser de al menos 1 mes.');
   var who=isAdmin()?$('#l-member').value:ME.id;
+  var dsel=($('#l-date').value||'').trim(), dfut=(dsel&&dsel>todayISO())?dsel:'';
+  if(dsel&&dsel<=todayISO()) return ferr('Elige una fecha futura o deja el campo vacío.');
+  if(dfut&&dfut>fundEnd()) return ferr('La fecha no puede ser posterior al cierre del fondo ('+fdate(fundEnd())+').');
   if(a>S.fund.maxLoanAmount) return ferr('El valor máximo de un préstamo es '+fmt(S.fund.maxLoanAmount)+'. Ingresa un monto menor.');
-  if(S.loans.filter(function(l){ return l.memberId===who&&(l.status==='solicitado'||l.status==='activo'); }).length>=S.fund.maxActiveLoans) return ferr(isAdmin()?'El socio ya tiene un préstamo vigente o en solicitud. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo vigente o en solicitud. Podrás pedir otro cuando pagues el actual.');
-  return done(api.requestLoan(who, a, n, ($('#l-note').value||'').trim()));
+  if(S.loans.filter(function(l){ return l.memberId===who&&(l.status==='solicitado'||l.status==='programado'||l.status==='activo'); }).length>=S.fund.maxActiveLoans) return ferr(isAdmin()?'El socio ya tiene un préstamo en espera, programado o vigente. Podrá pedir otro cuando lo pague.':'Ya tienes un préstamo en espera, programado o vigente. Podrás pedir otro cuando pagues el actual.');
+  return done(api.requestLoan(who, a, n, ($('#l-note').value||'').trim(), dfut||null));
 };
 F['pay-loan']=function(f){
   var a=Number($('#p-amount').value);
@@ -1188,14 +1338,14 @@ document.addEventListener('submit', function(e){
 document.addEventListener('change', function(e){
   var b=e.target.dataset&&e.target.dataset.bind;
   if(e.target.id==='p-type'){ payTypeChange(); return; }
-  if(b){ ui[b]=e.target.value; if(b==='userId') setMe(); render(); return; }
+  if(b){ ui[b]=e.target.value; if(b==='userId'){ tour.active=false; setMe(); render(); maybeTour(); return; } render(); return; }
   if(e.target.classList&&e.target.classList.contains('cb-c')) batchTotal();
 });
 document.addEventListener('input', function(e){
   if(e.target.id==='l-amount'||e.target.id==='l-term') loanPreview();
   if(e.target.id==='p-int') capPreview();
 });
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ if(!$('#modal').hidden) closeModal(); else if(tour.active) endTour(); } });
 
 /* =====================================================================
    INICIO
@@ -1216,10 +1366,10 @@ async function start(){
     var oerr=oauthErrorFromUrl();
     var ses=(await sb.auth.getSession()).data.session;
     if(!ses){ showOnly('login'); if(oerr) ferr(loginError(new Error(oerr))); return; }
-    try{ await loadAll(); render(); }catch(e){ showMsg('No se pudieron cargar los datos: '+e.message); }
+    try{ await loadAll(); render(); maybeTour(); }catch(e){ showMsg('No se pudieron cargar los datos: '+e.message); }
     return;
   }
-  await demoApi.init(); render();
+  await demoApi.init(); render(); maybeTour();
 }
 start();
 })();
