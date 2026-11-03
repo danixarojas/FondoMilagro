@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0d6a55">
-<title>Fondo Milagro</title>
+<title>Natillera Digital</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -122,6 +122,17 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 #tour{position:fixed;inset:0;z-index:12;pointer-events:none}
 .tour-back{position:absolute;inset:0;background:rgba(10,20,15,.38);pointer-events:auto}
 .tour-card{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(540px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.35);pointer-events:auto;z-index:16;display:grid;gap:8px}
+/* Medios de pago */
+.paycard{border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--surface))}
+.paycard h2{display:flex;align-items:center;gap:8px}
+.payrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);margin-top:8px}
+.payrow small{color:var(--muted);min-width:56px}
+.payrow b{font-family:var(--display);font-size:22px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.payrow .btn{margin-left:auto}
+.paywarn{margin:12px 0 0;font-size:13px;color:var(--ink)}
+.paysteps{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.paystrip{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--line);font-size:14px}
+.paystrip b{font-variant-numeric:tabular-nums}
 .tour-card small{color:var(--muted)}
 .tour-dots{display:flex;gap:5px;flex-wrap:wrap}
 .tour-dots i{width:8px;height:8px;border-radius:99px;background:var(--line)}
@@ -143,7 +154,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Natillera</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
@@ -168,7 +179,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 
 <div class="wrap" id="loginBox" hidden>
   <div class="card" style="max-width:420px;margin:48px auto">
-    <header><h2>Ingresar al Fondo Milagro</h2></header>
+    <header><h2>Ingresar al fondo Milagro</h2></header>
     <form data-form="login" style="display:grid;gap:12px">
       <label class="sm muted">Correo<input type="email" id="lg-email" autocomplete="username"></label>
       <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
@@ -226,6 +237,8 @@ if (PROD && window.supabase) sb = window.supabase.createClient(CLEAN_URL, CLEAN_
 
 var S = {fund:null, members:[], contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]};
 var ME = null;
+var PAY = {nequi:'3106976739', llave:'@3106976739', titular:'Johan Segura'};
+(function(){ var p=(window.NATILLERA_CONFIG||{}).payment||{}; ['nequi','llave','titular'].forEach(function(k){ if(p[k]) PAY[k]=String(p[k]); }); })();
 var ui = {tab:'resumen', userId:'m1', cMember:'todos', cStatus:'todos', stMember:null};
 
 /* =====================================================================
@@ -680,6 +693,20 @@ function waLink(m, text){
 function printHead(title, sub){
   return '<div class="printhead"><h2>'+esc(S.fund.name)+' · '+esc(title)+'</h2><p class="muted">'+esc(sub||'')+' · Generado el '+fdate(todayISO())+'</p></div>';
 }
+function copyBtn(v,label){ return '<button class="btn sm ghost" type="button" data-act="copy" data-v="'+esc(v)+'" aria-label="Copiar '+esc(label)+'">Copiar</button>'; }
+function payNote(){ return 'Paga <b>únicamente</b> por Nequi <b>'+esc(PAY.nequi)+'</b> o llave <b>'+esc(PAY.llave)+'</b>.'; }
+function payCard(compact){
+  var who=PAY.titular?'<p class="muted sm" style="margin:6px 0 0">A nombre de <b>'+esc(PAY.titular)+'</b>. Verifica que el nombre coincida antes de confirmar el pago.</p>':'';
+  if(compact){
+    return '<div class="paystrip" role="note"><span><b>¿Dónde pago?</b> Solo por</span><span>Nequi <b>'+esc(PAY.nequi)+'</b> '+copyBtn(PAY.nequi,'número de Nequi')+'</span><span>o llave <b>'+esc(PAY.llave)+'</b> '+copyBtn(PAY.llave,'llave')+'</span></div>';
+  }
+  return '<div class="card paycard"><header><h2>¿Dónde pago?</h2><span class="pill good">Medios oficiales</span></header>'+
+    '<p style="margin:0">Los pagos y abonos se reciben <b>únicamente</b> por estos dos medios:</p>'+
+    '<div class="payrow"><small>Nequi</small><b>'+esc(PAY.nequi)+'</b>'+copyBtn(PAY.nequi,'número de Nequi')+'</div>'+
+    '<div class="payrow"><small>Llave</small><b>'+esc(PAY.llave)+'</b>'+copyBtn(PAY.llave,'llave')+'</div>'+who+
+    '<ul class="paysteps"><li>1. Haz el pago</li><li>2. Guarda la captura del comprobante</li><li>3. Súbela en la página</li></ul>'+
+    '<p class="paywarn">No pagues a otras cuentas ni a números que te lleguen por mensaje. Si tienes dudas, pregúntale al administrador.</p></div>';
+}
 function lockNote(txt){ return '<div class="lock">'+txt+'</div>'; }
 
 /* =====================================================================
@@ -749,7 +776,7 @@ function viewResumen(){
     return h+'</div>';
   }
   h+=progressCard();
-  if(ME.id) h+=myCard(); else h+='<div class="card empty">Tu usuario aún no está inscrito en el fondo. Pídele al administrador que te registre.</div>';
+  if(ME.id) h+=myCard()+payCard(false); else h+='<div class="card empty">Tu usuario aún no está inscrito en el fondo. Pídele al administrador que te registre.</div>';
   if(f.closed&&S.mine){
     h+='<div class="card"><header><h2>Mi liquidación final</h2><span class="muted sm">Fondo cerrado el '+fdate(f.closedAt)+'</span></header><div class="stats"><div><small>Mi ahorro</small><b>'+fmt(S.mine.saved)+'</b></div><div><small>Mi parte de las ganancias</small><b>'+fmt(S.mine.profit_share)+'</b></div><div><small>Descuentos</small><b>'+fmt(S.mine.loan_debt)+'</b></div><div><small>Total a recibir</small><b>'+fmt(S.mine.net)+'</b></div></div></div>';
   } else {
@@ -766,7 +793,7 @@ function viewAportes(){
   else if(ui.cStatus!=='todos') list=list.filter(function(c){ return c.status===ui.cStatus; });
   list.sort(function(a,b){ return a.due<b.due?-1:a.due>b.due?1:0; });
   var counts={}; S.contributions.forEach(function(c){ counts[c.memberId]=(counts[c.memberId]||0)+1; });
-  var h='<div class="card"><header><h2>'+(staff?'Aportes de todos los socios':'Mis aportes')+'</h2></header><div class="filters">';
+  var h=payCard(true)+'<div class="card"><header><h2>'+(staff?'Aportes de todos los socios':'Mis aportes')+'</h2></header><div class="filters">';
   if(staff) h+='<label>Socio<select data-bind="cMember"><option value="todos">Todos</option>'+S.members.map(function(m){ return '<option value="'+m.id+'"'+(ui.cMember===m.id?' selected':'')+'>'+esc(m.name)+'</option>'; }).join('')+'</select></label>';
   var st=[['todos','Todos'],['pendiente','Pendiente'],['revision','En revisión'],['aprobado','Aprobado'],['rechazado','Rechazado'],['mora','En mora']];
   h+='<label>Estado<select data-bind="cStatus">'+st.map(function(s){ return '<option value="'+s[0]+'"'+(ui.cStatus===s[0]?' selected':'')+'>'+s[1]+'</option>'; }).join('')+'</select></label></div>';
@@ -777,7 +804,7 @@ function viewAportes(){
     var act='', open=(c.status==='pendiente'||c.status==='rechazado');
     if(open && !S.fund.closed && (admin||c.memberId===u.id)) act+='<button class="btn sm" type="button" data-act="upload-contrib" data-id="'+c.id+'">Subir comprobante</button>';
     if(admin && c.status==='revision') act+='<button class="btn sm" type="button" data-act="approve-contrib" data-id="'+c.id+'">Aprobar</button><button class="btn sm danger" type="button" data-act="reject-contrib" data-id="'+c.id+'">Rechazar</button>';
-    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la natillera ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Puedes subir tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
+    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la natillera ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Paga únicamente por Nequi '+PAY.nequi+' o llave '+PAY.llave+' y sube tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
     var fee=open?feeNow(c):(c.fee||0);
     h+='<tr><td>'+fdate(c.due)+'</td>'+(staff?'<td>'+esc(mname(c.memberId))+'</td>':'')+'<td>'+c.n+' de '+counts[c.memberId]+'</td><td class="r num">'+fmt(c.amount)+'</td><td class="r num">'+(fee?(open?'<span class="muted">'+fmt(fee)+' si pagas hoy</span>':fmt(fee)):'—')+'</td><td>'+cPill(c)+(c.status==='rechazado'&&c.adminNote?'<div class="muted sm">'+esc(c.adminNote)+'</div>':'')+'</td><td>'+(c.evidence?evButton('c',c.id):'<span class="muted">—</span>')+'</td><td class="no-print"><div class="actions">'+act+'</div></td></tr>';
   });
@@ -801,6 +828,7 @@ function viewPrestamos(){
     h+='<div class="lock" style="margin-bottom:8px">'+(ME.id?loanLimitNote():'')+'</div><p class="muted sm" style="margin:0">Tasa '+pctTxt(S.fund.rate)+' mensual sobre el saldo de capital. El administrador debe aprobar tu solicitud. Para pagar o abonar, usa el botón <b>Registrar pago o abono</b> en tu préstamo y sube el comprobante.</p>';
   }
   h+='</div>';
+  if(!staff) h+=payCard(true);
   if(!loans.length) h+='<div class="card empty">'+(staff?'Aún no hay préstamos.':'Aún no tienes préstamos.')+'</div>';
   loans.forEach(function(l){
     var bal=loanBalance(l), pays=paymentsOf(l.id).slice().sort(function(a,b){ return a.date<b.date?1:-1; }), act='';
@@ -860,7 +888,8 @@ function viewEstado(){
   if(staff) h+='<select data-bind="stMember" aria-label="Socio">'+S.members.map(function(x){ return '<option value="'+x.id+'"'+(x.id===mid?' selected':'')+'>'+esc(x.name)+'</option>'; }).join('')+'</select>';
   h+='<button class="btn sm ghost" type="button" data-act="print">Imprimir o guardar PDF</button></div></header>'+
      '<p style="margin:0 0 12px"><b>'+esc(m.name)+'</b> · '+(m.modality==='quincenal'?'ahorro quincenal':'ahorro mensual')+' de '+fmt(amountFor(m.modality))+'</p>'+
-     '<div class="stats"><div><small>Ahorro aprobado</small><b>'+fmt(paid)+'</b></div><div><small>Debía pagar a hoy</small><b>'+fmt(dueNow)+'</b></div><div><small>Diferencia</small><b>'+fmt(paid-dueNow)+'</b></div><div><small>Multas pagadas</small><b>'+fmt(fees)+'</b></div></div></div>';
+     '<div class="stats"><div><small>Ahorro aprobado</small><b>'+fmt(paid)+'</b></div><div><small>Debía pagar a hoy</small><b>'+fmt(dueNow)+'</b></div><div><small>Diferencia</small><b>'+fmt(paid-dueNow)+'</b></div><div><small>Multas pagadas</small><b>'+fmt(fees)+'</b></div></div>'+
+     '<p class="sm muted" style="margin:12px 0 0">Pagos y abonos: únicamente por Nequi '+esc(PAY.nequi)+' o llave '+esc(PAY.llave)+'.</p></div>';
   if(f.closed && !staff && S.mine) h+='<div class="card"><header><h2>Liquidación final</h2></header><div class="stats"><div><small>Ahorro</small><b>'+fmt(S.mine.saved)+'</b></div><div><small>Parte de ganancias</small><b>'+fmt(S.mine.profit_share)+'</b></div><div><small>Descuentos</small><b>'+fmt(S.mine.loan_debt)+'</b></div><div><small>Total a recibir</small><b>'+fmt(S.mine.net)+'</b></div></div></div>';
   {
     var ls=S.loans.filter(function(l){ return l.memberId===mid; });
@@ -952,11 +981,11 @@ function tourText(key){
     aportes: admin
       ? 'Todas las cuotas de todos los socios. Filtra por socio o por estado. Cuando alguien sube un comprobante aparece <b>En revisión</b>: ábrelo con <b>Ver</b> y luego <b>Aprueba</b> o <b>Rechaza</b> (con motivo). A quien está en mora puedes mandarle un recordatorio por WhatsApp.'
       : staff ? 'Todas las cuotas y sus comprobantes, en modo lectura.'
-      : 'Tu calendario de cuotas con su estado: pendiente, en revisión, aprobado o rechazado. Pulsa <b>Subir comprobante</b>, adjunta la foto de tu consignación y envíala. Puedes pagar <b>varias cuotas con una sola foto</b>. El administrador la revisa y la aprueba.'+(f.lateFee>0?' Si pagas con más de '+f.graceDays+' días de atraso hay una multa de '+fmt(f.lateFee)+' por cuota.':''),
+      : 'Tu calendario de cuotas con su estado: pendiente, en revisión, aprobado o rechazado. Pulsa <b>Subir comprobante</b>, adjunta la foto de tu consignación y envíala. Puedes pagar <b>varias cuotas con una sola foto</b>. Los pagos se reciben <b>únicamente</b> por Nequi <b>'+esc(PAY.nequi)+'</b> o llave <b>'+esc(PAY.llave)+'</b>. El administrador revisa tu comprobante y lo aprueba.'+(f.lateFee>0?' Si pagas con más de '+f.graceDays+' días de atraso hay una multa de '+fmt(f.lateFee)+' por cuota.':''),
     prestamos: admin
       ? 'Aquí autorizas préstamos y revisas los pagos que llegan. Los pedidos con <b>fecha futura</b> quedan <b>En espera</b>: al autorizarlos pasan a <b>Programado</b> y desde esa fecha los <b>desembolsas</b>; si ese día no hay fondos, la página te lo avisa. Puedes eliminar préstamos que no tengan pagos aprobados.'
       : staff ? 'Todos los préstamos, sus pagos y las fechas programadas, en modo lectura.'
-      : 'Aquí <b>solicitas un préstamo</b> (hasta '+fmt(f.maxLoanAmount)+', aunque no tengas ese ahorro). Si lo necesitas para otro día, elige la fecha: queda <b>en espera</b> hasta que el administrador lo autorice. Con un préstamo activo, usa <b>Registrar pago o abono</b> y sube el comprobante. No puedes tener dos a la vez.',
+      : 'Aquí <b>solicitas un préstamo</b> (hasta '+fmt(f.maxLoanAmount)+', aunque no tengas ese ahorro). Si lo necesitas para otro día, elige la fecha: queda <b>en espera</b> hasta que el administrador lo autorice. Con un préstamo activo, paga o abona <b>únicamente</b> por Nequi <b>'+esc(PAY.nequi)+'</b> o llave <b>'+esc(PAY.llave)+'</b>, y luego usa <b>Registrar pago o abono</b> para subir el comprobante. No puedes tener dos préstamos a la vez.',
     liquidacion: 'Lo que recibirá cada socio al cierre del fondo: su ahorro más su parte de las ganancias, menos préstamos pendientes.'+(admin?' Al terminar los '+f.months+' meses, el administrador cierra el fondo y queda un acta que se puede imprimir.':''),
     estado: staff ? 'El estado de cuenta de cualquier socio: ahorro aprobado, lo que debía a hoy y multas. Se puede <b>imprimir o guardar en PDF</b>.'
                   : 'Tu estado de cuenta: ahorro aprobado, lo que debías pagar a hoy y tus multas. Puedes <b>imprimirlo o guardarlo en PDF</b>.',
@@ -1044,6 +1073,11 @@ function done(p){ return p.then(function(){ closeModal(); render(); }).catch(fun
 var H={};
 H.tab=function(d){ ui.tab=d.tab; render(); };
 H.close=closeModal;
+H.copy=function(d){
+  var v=d.v||'', done=function(){ ferr('Copiado: '+v); };
+  try{ navigator.clipboard.writeText(v).then(done,function(){ ferr('No se pudo copiar. Selecciónalo y cópialo: '+v); }); }
+  catch(e){ ferr('No se pudo copiar. Selecciónalo y cópialo: '+v); }
+};
 H.tour=function(){ closeModal(); startTour(); };
 H['tour-next']=function(){ if(tour.i>=tour.steps.length-1){ endTour(); return; } tour.i++; var st=tour.steps[tour.i]; if(st.tab) ui.tab=st.tab; render(); };
 H['tour-prev']=function(){ if(tour.i>0){ tour.i--; var st=tour.steps[tour.i]; if(st.tab) ui.tab=st.tab; else ui.tab='resumen'; render(); } };
@@ -1083,6 +1117,7 @@ H['upload-contrib']=function(d){
     '<div style="display:grid;gap:4px">'+cands.map(function(x){ var fee=feeNow(x);
       return '<label class="chk"><input type="checkbox" class="cb-c" value="'+x.id+'" data-amt="'+x.amount+'" data-fee="'+fee+'"'+(x.id===c.id?' checked':'')+'> Cuota '+x.n+' · vence '+fdate(x.due)+' · '+fmt(x.amount)+(fee?' + multa '+fmt(fee):'')+'</label>'; }).join('')+'</div>'+
     '<div class="preview" id="b-total"></div>'+
+    '<p class="sm" style="margin:0">'+payNote()+'</p>'+
     '<label>Foto o PDF de la consignación<input type="file" id="f-file" accept="image/*,application/pdf"></label>'+
     '<label>Nota (opcional)<textarea id="f-note" placeholder="Ej. Nequi, referencia 12345"></textarea></label>'+
     '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Enviar a revisión</button></form>');
@@ -1158,6 +1193,7 @@ H['pay-loan']=function(d){
   var l=byId(S.loans,d.id), bal=loanBalance(l), intr=Math.round(bal*S.fund.rate);
   modal(isAdmin()?'Registrar pago de préstamo':'Registrar pago o abono','<form data-form="pay-loan" data-id="'+l.id+'" data-int="'+intr+'" data-bal="'+bal+'" style="display:grid;gap:12px">'+
     '<p style="margin:0">'+(isAdmin()?esc(mname(l.memberId))+' · ':'')+'saldo de capital <b class="num">'+fmt(bal)+'</b>. Interés de este mes: <b class="num">'+fmt(intr)+'</b>.</p>'+
+    '<p class="sm" style="margin:0">'+payNote()+'</p>'+
     '<label>¿Qué estás pagando?<select id="p-type"><option value="interes">Solo el interés del mes</option><option value="abono">Interés y abono a capital</option><option value="total">Cancelar el préstamo (saldo + interés)</option></select></label>'+
     '<label>Valor consignado (COP)<input type="number" id="p-amount" value="'+intr+'"></label>'+
     '<p class="muted sm" style="margin:0" id="p-help">Consigna el interés del mes y sube el comprobante.</p>'+
