@@ -694,7 +694,7 @@ function printHead(title, sub){
   return '<div class="printhead"><h2>'+esc(S.fund.name)+' · '+esc(title)+'</h2><p class="muted">'+esc(sub||'')+' · Generado el '+fdate(todayISO())+'</p></div>';
 }
 function copyBtn(v,label){ return '<button class="btn sm ghost" type="button" data-act="copy" data-v="'+esc(v)+'" aria-label="Copiar '+esc(label)+'">Copiar</button>'; }
-function payNote(){ return 'Paga <b>únicamente</b> por Nequi <b>'+esc(PAY.nequi)+'</b> o llave <b>'+esc(PAY.llave)+'</b>.'; }
+function payNote(){ return 'Paga <b>únicamente</b>llave <b>'+esc(PAY.llave)+'</b>.'; }
 function payCard(compact){
   var who=PAY.titular?'<p class="muted sm" style="margin:6px 0 0">A nombre de <b>'+esc(PAY.titular)+'</b>. Verifica que el nombre coincida antes de confirmar el pago.</p>':'';
   if(compact){
