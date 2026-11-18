@@ -1,16 +1,17 @@
-1<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0d6a55">
-<title>Natillera Digital</title>
+<meta name="theme-color" content="#14492f">
+<title>Fondo Milagro</title>
+<script>document.documentElement.className="xmas";</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
 <style>
 /* Diseño: cabecera + pestañas arriba, contenido en tarjetas; verde profundo como acento, semáforo solo para estados. */
 :root{
@@ -148,13 +149,84 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
   .card{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
   .wrap{max-width:none;padding:0}
 }
+/* ===== Tema navideño (para apagarlo: xmas:false en config.js) ===== */
+.lights,.snow,.login-top{display:none}
+html.xmas{
+  --bg:#faf6ee; --ink:#1f2a24; --muted:#5d6a62; --line:#e6dfd0;
+  --accent:#1b5e3b; --accent-soft:#e4f1e7; --accent-ink:#ffffff;
+  --xred:#b3202a; --gold:#c9972b;
+  --shadow:0 1px 2px rgba(60,30,20,.07),0 6px 18px rgba(60,30,20,.06);
+}
+@media (prefers-color-scheme: dark){
+  html.xmas:not([data-theme="light"]){
+    --bg:#0e1913; --surface:#16251c; --ink:#eef3ee; --muted:#a5b5aa; --line:#2a3d30;
+    --accent:#7bd99f; --accent-soft:#183a28; --accent-ink:#06261a; --xred:#ff8c8c; --gold:#f0c660;
+  }
+}
+html.xmas[data-theme="dark"]{
+  --bg:#0e1913; --surface:#16251c; --ink:#eef3ee; --muted:#a5b5aa; --line:#2a3d30;
+  --accent:#7bd99f; --accent-soft:#183a28; --accent-ink:#06261a; --xred:#ff8c8c; --gold:#f0c660;
+}
+html.xmas body{background-image:radial-gradient(circle,rgba(201,151,43,.10) 1.5px,transparent 2px);background-size:46px 46px}
+html.xmas .lights{display:block;height:22px;
+  background-image:radial-gradient(circle at 12px 13px,#ff4d4d 4.5px,transparent 5.5px),radial-gradient(circle at 42px 15px,#ffd84d 4.5px,transparent 5.5px),radial-gradient(circle at 72px 13px,#52d68a 4.5px,transparent 5.5px),radial-gradient(circle at 102px 15px,#7cc4ff 4.5px,transparent 5.5px),linear-gradient(#0b2a1b,#0b2a1b);
+  background-size:120px 22px,120px 22px,120px 22px,120px 22px,100% 2px;
+  background-repeat:repeat-x,repeat-x,repeat-x,repeat-x,no-repeat;
+  background-position:0 0,0 0,0 0,0 0,0 4px}
+html.xmas .lights-card{margin:-16px -16px 10px;border-radius:12px 12px 0 0}
+html.xmas header.top{position:relative;background:linear-gradient(180deg,#14492f,#1b5e3b);border-bottom:0;color:#f6efe0;margin-bottom:14px}
+html.xmas header.top::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;pointer-events:none;
+  background:radial-gradient(circle at 12px 0,#1b5e3b 11px,transparent 12px) 0 0/24px 12px repeat-x}
+html.xmas header.top .wrap{position:relative;z-index:1}
+html.xmas .snow{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none}
+html.xmas .snow::before,html.xmas .snow::after{content:"";position:absolute;inset:0;opacity:.8;
+  background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 60px 80px,#fff,transparent),radial-gradient(3px 3px at 110px 20px,#fff,transparent),radial-gradient(2px 2px at 150px 120px,#fff,transparent),radial-gradient(3px 3px at 90px 150px,#fff,transparent);
+  background-size:180px 180px}
+html.xmas .snow::after{opacity:.55;background-size:130px 130px;background-position:40px 20px}
+html.xmas .brand b{color:#fff3cf;font-family:'Mountains of Christmas',var(--display);font-size:28px;line-height:1.1}
+html.xmas .brand b::before{content:"🎄 "}
+html.xmas .brand span{color:#cfe3d4}
+html.xmas .brand .hello{color:#ffd76a;font-size:12px;font-weight:600}
+html.xmas .who{color:#e4efe6}
+html.xmas .who .btn.ghost{color:#fff;border-color:rgba(255,255,255,.55)}
+html.xmas .who .btn.ghost:hover{background:rgba(255,255,255,.14);filter:none}
+html.xmas nav.tabs button{color:#d5e6da}
+html.xmas nav.tabs button:hover{color:#fff}
+html.xmas nav.tabs button[aria-current=page]{color:#ffd76a;border-bottom-color:#ffd76a}
+html.xmas header.top :focus-visible{outline-color:#ffd76a}
+html.xmas header.top .tour-hl{color:var(--ink)}
+html.xmas header.top .tour-hl .btn.ghost{color:var(--accent);border-color:var(--accent)}
+html.xmas header.top .tour-hl:hover{color:var(--accent)}
+html.xmas .notice{margin-top:2px}
+html.xmas .card>header h2::before{content:"✦";color:var(--gold);margin-right:6px;font-size:.8em}
+html.xmas .card.kpi{border-top:3px solid var(--xred)}
+html.xmas .card.kpi:nth-child(even){border-top-color:var(--accent)}
+html.xmas .card.kpi:nth-child(3n){border-top-color:var(--gold)}
+html.xmas .bar>i{background:repeating-linear-gradient(-45deg,var(--xred) 0 7px,#f7efe0 7px 14px)}
+html.xmas .paycard{position:relative;border:2px solid var(--gold)}
+html.xmas .paycard{background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 16%,var(--surface)),var(--surface))}
+html.xmas .paycard::after{content:"🎁";position:absolute;top:-16px;right:14px;font-size:30px}
+html.xmas .paycard::after{content:"🎁"/""}
+html.xmas .login-top{display:block;text-align:center;font-size:44px;line-height:1;margin:0 0 6px}
+html.xmas #loginBox h2{font-family:'Mountains of Christmas',var(--display);font-size:26px;color:var(--xred)}
+html.xmas #loginBox .card{border-top:0;overflow:visible}
+@media (prefers-reduced-motion:no-preference){
+  html.xmas .lights{animation:twinkle 2.6s ease-in-out infinite alternate}
+  html.xmas .snow::before{animation:snowfall 11s linear infinite}
+  html.xmas .snow::after{animation:snowfall 7s linear infinite}
+  @keyframes twinkle{from{opacity:.6}to{opacity:1}}
+  @keyframes snowfall{to{background-position-y:180px}}
+}
+@media print{ html.xmas body{background-image:none} }
 </style>
 </head>
 <body>
 <header class="top">
+  <div class="lights" aria-hidden="true"></div>
+  <div class="snow" aria-hidden="true"></div>
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span></div>
+      <div class="brand"><b id="fundName">Fondo Milagro</b><span id="fundSub"></span><span id="xmasHello" class="hello"></span></div>
       <div class="who" id="demoWho">
         <label for="userSel">Ver como</label>
         <select id="userSel" data-bind="userId"></select>
@@ -179,7 +251,9 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 
 <div class="wrap" id="loginBox" hidden>
   <div class="card" style="max-width:420px;margin:48px auto">
-    <header><h2>Ingresar al fondo Milagro</h2></header>
+    <div class="lights lights-card" aria-hidden="true"></div>
+    <div class="login-top" aria-hidden="true">🎄</div>
+    <header><h2>Ingresar a Fondo Milagro</h2></header>
     <form data-form="login" style="display:grid;gap:12px">
       <label class="sm muted">Correo<input type="email" id="lg-email" autocomplete="username"></label>
       <label class="sm muted">Contraseña<input type="password" id="lg-pass" autocomplete="current-password"></label>
@@ -192,7 +266,7 @@ footer.foot{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 3
 <div class="wrap" id="msgBox" hidden><div class="card" style="max-width:520px;margin:48px auto"><h2>Atención</h2><p id="msgText"></p></div></div>
 
 <div class="wrap" id="appBox"><main id="view" tabindex="-1"></main></div>
-<footer class="foot">Fondo Milagro · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
+<footer class="foot">Fondo Milagro 🎄 · los comprobantes se guardan de forma privada y no se pueden borrar.</footer>
 <div id="modal" hidden></div>
 <div id="toast" hidden role="status"></div>
 <div id="tour" hidden><div class="tour-back"></div><div class="tour-card" id="tourCard" role="dialog" aria-live="polite" aria-label="Recorrido guiado"></div></div>
@@ -227,6 +301,8 @@ var DUP = 'Este comprobante ya fue usado en otro pago. Sube el comprobante corre
    CONFIGURACIÓN: modo demo (sin claves) o modo real (con Supabase)
    ===================================================================== */
 var CFG = window.NATILLERA_CONFIG || {};
+var BRAND = 'Fondo Milagro';
+if(CFG.xmas===false) document.documentElement.classList.remove('xmas');
 var PROD = !!(CFG.url && CFG.anonKey);
 var sb = null;
 // Limpia la URL: deja solo https://xxxx.supabase.co (sin "/" final, sin /rest/v1 ni espacios)
@@ -237,8 +313,8 @@ if (PROD && window.supabase) sb = window.supabase.createClient(CLEAN_URL, CLEAN_
 
 var S = {fund:null, members:[], contributions:[], loans:[], payments:[], log:[], snapshot:null, mine:null, profiles:[]};
 var ME = null;
-var PAY = {llave:'@UYQ516', titular:'Johan Segura'};
-(function(){ var p=(window.NATILLERA_CONFIG||{}).payment||{}; ['','llave','titular'].forEach(function(k){ if(p[k]) PAY[k]=String(p[k]); }); })();
+var PAY = {llave:'@124542', titular:''};
+(function(){ var p=(window.NATILLERA_CONFIG||{}).payment||{}; ['llave','titular'].forEach(function(k){ if(p[k]) PAY[k]=String(p[k]); }); })();
 var ui = {tab:'resumen', userId:'m1', cMember:'todos', cStatus:'todos', stMember:null};
 
 /* =====================================================================
@@ -364,7 +440,7 @@ function receipt(label){
 function seedDemo(){
   var now=new Date(), start=iso(new Date(now.getFullYear(), now.getMonth()-2, 1));
   S={
-    fund:{id:'f1', name:'Natillera Amigos 14', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
+    fund:{id:'f1', name:'Fondo Milagro', startDate:start, months:14, rate:0.03, monthlyAmt:100000, biweeklyAmt:50000,
           maxLoanAmount:1350000, maxActiveLoans:1, lateFee:5000, graceDays:3, reservePct:0.10, interestMode:'tiempo', closed:false, closedAt:null},
     members:[
       {id:'m1',profileId:'m1',name:'Laura Gómez',email:'laura@ejemplo.co',phone:'3001110001',role:'admin',modality:'mensual',active:true},
@@ -691,20 +767,19 @@ function waLink(m, text){
   return 'https://wa.me/'+ph+'?text='+encodeURIComponent(text);
 }
 function printHead(title, sub){
-  return '<div class="printhead"><h2>'+esc(S.fund.name)+' · '+esc(title)+'</h2><p class="muted">'+esc(sub||'')+' · Generado el '+fdate(todayISO())+'</p></div>';
+  return '<div class="printhead"><h2>'+esc(BRAND)+' · '+esc(title)+'</h2><p class="muted">'+esc(sub||'')+' · Generado el '+fdate(todayISO())+'</p></div>';
 }
 function copyBtn(v,label){ return '<button class="btn sm ghost" type="button" data-act="copy" data-v="'+esc(v)+'" aria-label="Copiar '+esc(label)+'">Copiar</button>'; }
-function payNote(){ return 'Paga <b>únicamente</b>llave <b>'+esc(PAY.llave)+'</b>.'; }
+function payNote(){ return 'Paga <b>únicamente</b> por la llave <b>'+esc(PAY.llave)+'</b>.'; }
 function payCard(compact){
   var who=PAY.titular?'<p class="muted sm" style="margin:6px 0 0">A nombre de <b>'+esc(PAY.titular)+'</b>. Verifica que el nombre coincida antes de confirmar el pago.</p>':'';
   if(compact){
-    return '<div class="paystrip" role="note"><span><b>¿Dónde pago?</b> Solo por</span><span> <b>'+esc()+'</b> '+copyBtn(,'número de ')+'</span><span>o llave <b>'+esc(PAY.llave)+'</b> '+copyBtn(PAY.llave,'llave')+'</span></div>';
+    return '<div class="paystrip" role="note"><span><b>¿Dónde pago?</b> Solo por la llave</span><span><b>'+esc(PAY.llave)+'</b> '+copyBtn(PAY.llave,'llave')+'</span></div>';
   }
-  return '<div class="card paycard"><header><h2>¿Dónde pago?</h2><span class="pill good">Medios oficiales</span></header>'+
-    '<p style="margin:0">Los pagos y abonos se reciben <b>únicamente</b> por estos dos medios:</p>'+
-    '<div class="payrow"><small></small><b>'+esc()+'</b>'+copyBtn(,'número de ')+'</div>'+
+  return '<div class="card paycard"><header><h2>¿Dónde pago?</h2><span class="pill good">Llave oficial</span></header>'+
+    '<p style="margin:0">Los pagos y abonos se reciben <b>únicamente</b> por esta llave:</p>'+
     '<div class="payrow"><small>Llave</small><b>'+esc(PAY.llave)+'</b>'+copyBtn(PAY.llave,'llave')+'</div>'+who+
-    '<ul class="paysteps"><li>1. Haz el pago</li><li>2. Guarda la captura del comprobante</li><li>3. Súbela en la página</li></ul>'+
+    '<ul class="paysteps"><li>1. Haz el pago a la llave</li><li>2. Guarda la captura del comprobante</li><li>3. Súbela en la página</li></ul>'+
     '<p class="paywarn">No pagues a otras cuentas ni a números que te lleguen por mensaje. Si tienes dudas, pregúntale al administrador.</p></div>';
 }
 function lockNote(txt){ return '<div class="lock">'+txt+'</div>'; }
@@ -804,7 +879,7 @@ function viewAportes(){
     var act='', open=(c.status==='pendiente'||c.status==='rechazado');
     if(open && !S.fund.closed && (admin||c.memberId===u.id)) act+='<button class="btn sm" type="button" data-act="upload-contrib" data-id="'+c.id+'">Subir comprobante</button>';
     if(admin && c.status==='revision') act+='<button class="btn sm" type="button" data-act="approve-contrib" data-id="'+c.id+'">Aprobar</button><button class="btn sm danger" type="button" data-act="reject-contrib" data-id="'+c.id+'">Rechazar</button>';
-    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' de la natillera ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Paga únicamente por  '++' o llave '+PAY.llave+' y sube tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
+    if(admin && c.status==='pendiente' && isLate(c)) act+='<a class="btn sm ghost" target="_blank" rel="noopener" href="'+waLink(member(c.memberId),'Hola '+(mname(c.memberId).split(' ')[0])+', te recordamos que la cuota '+c.n+' del Fondo Milagro ('+fmt(c.amount)+') venció el '+fdate(c.due)+'. Paga únicamente por la llave '+PAY.llave+' y sube tu comprobante aquí: '+location.href.split('#')[0])+'">Recordar por WhatsApp</a>';
     var fee=open?feeNow(c):(c.fee||0);
     h+='<tr><td>'+fdate(c.due)+'</td>'+(staff?'<td>'+esc(mname(c.memberId))+'</td>':'')+'<td>'+c.n+' de '+counts[c.memberId]+'</td><td class="r num">'+fmt(c.amount)+'</td><td class="r num">'+(fee?(open?'<span class="muted">'+fmt(fee)+' si pagas hoy</span>':fmt(fee)):'—')+'</td><td>'+cPill(c)+(c.status==='rechazado'&&c.adminNote?'<div class="muted sm">'+esc(c.adminNote)+'</div>':'')+'</td><td>'+(c.evidence?evButton('c',c.id):'<span class="muted">—</span>')+'</td><td class="no-print"><div class="actions">'+act+'</div></td></tr>';
   });
@@ -889,7 +964,7 @@ function viewEstado(){
   h+='<button class="btn sm ghost" type="button" data-act="print">Imprimir o guardar PDF</button></div></header>'+
      '<p style="margin:0 0 12px"><b>'+esc(m.name)+'</b> · '+(m.modality==='quincenal'?'ahorro quincenal':'ahorro mensual')+' de '+fmt(amountFor(m.modality))+'</p>'+
      '<div class="stats"><div><small>Ahorro aprobado</small><b>'+fmt(paid)+'</b></div><div><small>Debía pagar a hoy</small><b>'+fmt(dueNow)+'</b></div><div><small>Diferencia</small><b>'+fmt(paid-dueNow)+'</b></div><div><small>Multas pagadas</small><b>'+fmt(fees)+'</b></div></div>'+
-     '<p class="sm muted" style="margin:12px 0 0">Pagos y abonos: únicamente por  '+esc()+' o llave '+esc(PAY.llave)+'.</p></div>';
+     '<p class="sm muted" style="margin:12px 0 0">Pagos y abonos: únicamente por la llave '+esc(PAY.llave)+'.</p></div>';
   if(f.closed && !staff && S.mine) h+='<div class="card"><header><h2>Liquidación final</h2></header><div class="stats"><div><small>Ahorro</small><b>'+fmt(S.mine.saved)+'</b></div><div><small>Parte de ganancias</small><b>'+fmt(S.mine.profit_share)+'</b></div><div><small>Descuentos</small><b>'+fmt(S.mine.loan_debt)+'</b></div><div><small>Total a recibir</small><b>'+fmt(S.mine.net)+'</b></div></div></div>';
   {
     var ls=S.loans.filter(function(l){ return l.memberId===mid; });
@@ -944,7 +1019,7 @@ function viewNoFund(){
   if(!isAdmin()) return '<div class="card empty">El administrador aún no ha creado el fondo. Vuelve a intentarlo más tarde.</div>';
   var d=iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   return '<div class="card"><header><h2>Crear el fondo</h2></header><form data-form="create-fund" style="display:grid;gap:12px;max-width:520px">'+
-    '<label class="sm muted">Nombre<input type="text" id="n-name" value="Natillera Amigos"></label>'+
+    '<label class="sm muted">Nombre<input type="text" id="n-name" value="Fondo Milagro"></label>'+
     '<label class="sm muted">Fecha de inicio<input type="date" id="n-start" value="'+d+'"></label>'+
     '<label class="sm muted">Duración (meses)<input type="number" id="n-months" value="14"></label>'+
     '<label class="sm muted">Aporte mensual (COP)<input type="number" id="n-mon" value="100000"></label>'+
@@ -981,11 +1056,11 @@ function tourText(key){
     aportes: admin
       ? 'Todas las cuotas de todos los socios. Filtra por socio o por estado. Cuando alguien sube un comprobante aparece <b>En revisión</b>: ábrelo con <b>Ver</b> y luego <b>Aprueba</b> o <b>Rechaza</b> (con motivo). A quien está en mora puedes mandarle un recordatorio por WhatsApp.'
       : staff ? 'Todas las cuotas y sus comprobantes, en modo lectura.'
-      : 'Tu calendario de cuotas con su estado: pendiente, en revisión, aprobado o rechazado. Pulsa <b>Subir comprobante</b>, adjunta la foto de tu consignación y envíala. Puedes pagar <b>varias cuotas con una sola foto</b>. Los pagos se reciben <b>únicamente</b> por  <b>'+esc()+'</b> o llave <b>'+esc(PAY.llave)+'</b>. El administrador revisa tu comprobante y lo aprueba.'+(f.lateFee>0?' Si pagas con más de '+f.graceDays+' días de atraso hay una multa de '+fmt(f.lateFee)+' por cuota.':''),
+      : 'Tu calendario de cuotas con su estado: pendiente, en revisión, aprobado o rechazado. Pulsa <b>Subir comprobante</b>, adjunta la foto de tu consignación y envíala. Puedes pagar <b>varias cuotas con una sola foto</b>. Los pagos se reciben <b>únicamente</b> por la llave <b>'+esc(PAY.llave)+'</b>. El administrador revisa tu comprobante y lo aprueba.'+(f.lateFee>0?' Si pagas con más de '+f.graceDays+' días de atraso hay una multa de '+fmt(f.lateFee)+' por cuota.':''),
     prestamos: admin
       ? 'Aquí autorizas préstamos y revisas los pagos que llegan. Los pedidos con <b>fecha futura</b> quedan <b>En espera</b>: al autorizarlos pasan a <b>Programado</b> y desde esa fecha los <b>desembolsas</b>; si ese día no hay fondos, la página te lo avisa. Puedes eliminar préstamos que no tengan pagos aprobados.'
       : staff ? 'Todos los préstamos, sus pagos y las fechas programadas, en modo lectura.'
-      : 'Aquí <b>solicitas un préstamo</b> (hasta '+fmt(f.maxLoanAmount)+', aunque no tengas ese ahorro). Si lo necesitas para otro día, elige la fecha: queda <b>en espera</b> hasta que el administrador lo autorice. Con un préstamo activo, paga o abona <b>únicamente</b> por  <b>'+esc()+'</b> o llave <b>'+esc(PAY.llave)+'</b>, y luego usa <b>Registrar pago o abono</b> para subir el comprobante. No puedes tener dos préstamos a la vez.',
+      : 'Aquí <b>solicitas un préstamo</b> (hasta '+fmt(f.maxLoanAmount)+', aunque no tengas ese ahorro). Si lo necesitas para otro día, elige la fecha: queda <b>en espera</b> hasta que el administrador lo autorice. Con un préstamo activo, paga o abona <b>únicamente</b> por la llave <b>'+esc(PAY.llave)+'</b>, y luego usa <b>Registrar pago o abono</b> para subir el comprobante. No puedes tener dos préstamos a la vez.',
     liquidacion: 'Lo que recibirá cada socio al cierre del fondo: su ahorro más su parte de las ganancias, menos préstamos pendientes.'+(admin?' Al terminar los '+f.months+' meses, el administrador cierra el fondo y queda un acta que se puede imprimir.':''),
     estado: staff ? 'El estado de cuenta de cualquier socio: ahorro aprobado, lo que debía a hoy y multas. Se puede <b>imprimir o guardar en PDF</b>.'
                   : 'Tu estado de cuenta: ahorro aprobado, lo que debías pagar a hoy y tus multas. Puedes <b>imprimirlo o guardarlo en PDF</b>.',
@@ -996,7 +1071,7 @@ function tourText(key){
   return T[key]||'';
 }
 function tourSteps(){
-  var steps=[{tab:null, title:'¡Bienvenido a la natillera, '+ME.name.split(' ')[0]+'!', text:'Te mostramos en un minuto qué puedes ver y hacer en cada apartado. Tu rol es <b>'+ROLE_TXT[ME.role].toLowerCase()+'</b>. Puedes saltar el recorrido cuando quieras y volver a verlo con el botón <b>Recorrido</b>.'}];
+  var steps=[{tab:null, title:'¡Bienvenido al Fondo Milagro, '+ME.name.split(' ')[0]+'!', text:'Te mostramos en un minuto qué puedes ver y hacer en cada apartado. Tu rol es <b>'+ROLE_TXT[ME.role].toLowerCase()+'</b>. Puedes saltar el recorrido cuando quieras y volver a verlo con el botón <b>Recorrido</b>.'}];
   visibleTabs().forEach(function(t){ steps.push({tab:t[0], title:t[1], text:tourText(t[0])}); });
   steps.push({tab:null, hl:'who', title:'Tu cuenta', text:PROD
     ? 'Arriba a la derecha: <b>Mi nombre</b> para cambiar el nombre que se muestra, <b>Cambiar contraseña</b> y <b>Salir</b>. Con <b>Recorrido</b> vuelves a ver esta guía.'
@@ -1038,6 +1113,16 @@ function projectedLendable(l){
   var other=sum(S.loans.filter(function(x){ return x.id!==l.id&&x.status==='programado'&&x.desiredDate&&(x.desiredDate<d||(x.desiredDate===d&&x.requestedAt<l.requestedAt)); }), function(x){ return x.amount; });
   return Math.max(0, t.cash+exp-reserve-other);
 }
+function xmasHello(){
+  var el=$('#xmasHello'); if(!el) return;
+  var n=new Date(), d=new Date(n.getFullYear(),11,25), t=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  var diff=Math.round((d-t)/86400000), txt='';
+  if(diff===0) txt='¡Feliz Navidad!';
+  else if((diff<0&&n.getMonth()===11)||(n.getMonth()===0&&n.getDate()<=6)) txt='¡Feliz Navidad y próspero Año Nuevo!';
+  else if(diff===1) txt='¡Mañana es Navidad!';
+  else if(diff>1&&diff<=60) txt='Faltan '+diff+' días para Navidad';
+  el.textContent=txt;
+}
 function loanActionCount(){
   var today=todayISO();
   return S.loans.filter(function(l){ return l.status==='solicitado'||(l.status==='programado'&&l.desiredDate&&l.desiredDate<=today); }).length;
@@ -1046,7 +1131,7 @@ function render(){
   if(!ME){ return; }
   refreshAlertsDemo();
   var staff=isStaff(), admin=isAdmin();
-  $('#fundName').textContent=S.fund?S.fund.name:'Natillera Digital';
+  $('#fundName').textContent=BRAND; xmasHello();
   $('#fundSub').textContent=S.fund?('Fondo de '+S.fund.months+' meses · '+ROLE_TXT[ME.role]+(S.fund.closed?' · cerrado':'')):ROLE_TXT[ME.role];
   $('#demoWho').hidden=PROD; $('#prodWho').hidden=!PROD; $('#meName').textContent=ME.name+' · '+ROLE_TXT[ME.role];
   if(!PROD) $('#userSel').innerHTML=S.members.map(function(m){ return '<option value="'+m.id+'"'+(m.id===ui.userId?' selected':'')+'>'+esc(m.name)+' ('+ROLE_TXT[m.role].toLowerCase()+')</option>'; }).join('');
@@ -1119,7 +1204,7 @@ H['upload-contrib']=function(d){
     '<div class="preview" id="b-total"></div>'+
     '<p class="sm" style="margin:0">'+payNote()+'</p>'+
     '<label>Foto o PDF de la consignación<input type="file" id="f-file" accept="image/*,application/pdf"></label>'+
-    '<label>Nota (opcional)<textarea id="f-note" placeholder="Ej. , referencia 12345"></textarea></label>'+
+    '<label>Nota (opcional)<textarea id="f-note" placeholder="Ej. referencia 12345"></textarea></label>'+
     '<p class="err" id="ferr" role="alert"></p><button class="btn" type="submit">Enviar a revisión</button></form>');
   batchTotal();
 };
@@ -1395,6 +1480,12 @@ function oauthErrorFromUrl(){
   return null;
 }
 async function start(){
+  // En un sitio publicado (GitHub Pages, etc.) nunca se debe caer en la demo por accidente.
+  var HOSTED=/\.(github\.io|pages\.dev|netlify\.app|vercel\.app)$/i.test(location.hostname);
+  if(!PROD && HOSTED && !CFG.demo){
+    showMsg('Esta página todavía no está conectada a Supabase, por eso no muestra tus datos. Abre el archivo config.js de tu repositorio y revisa que tenga tu URL (https://TU-PROYECTO.supabase.co) y tu clave entre comillas; si quedó vacío, vuelve a pegarlos y guarda con Commit changes. Luego recarga esta página con Ctrl + Shift + R.');
+    return;
+  }
   try{ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
   if(PROD){
     if(!sb){ showMsg('No se pudo cargar la librería de Supabase. Revisa tu conexión a internet y recarga la página.'); return; }
